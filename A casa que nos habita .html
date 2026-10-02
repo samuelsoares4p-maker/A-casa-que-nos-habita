@@ -1,0 +1,2981 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Casa que Nos Habita — Edição Expandida</title>
+<style>
+  :root{
+    --paper:#f7f4ee;
+    --paper2:#efe9dd;
+    --ink:#1e1a16;
+    --muted:#8b8378;
+    --line:#dcd5c7;
+    --accent:#6b4a2b;
+    --page-w:min(100%, 780px);
+    --pad-x:clamp(28px, 6vw, 64px);
+    --pad-y:clamp(40px, 7vh, 72px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;overflow:hidden;}
+  body{
+    background:#15120f;
+    color:var(--ink);
+    font-family:Georgia,"Iowan Old Style","Times New Roman",serif;
+    font-size:18px;
+    line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+    user-select:none;
+  }
+  /* ---------- Arena do livro ---------- */
+  .book{
+    position:fixed; inset:0;
+    perspective:2600px;
+    perspective-origin:50% 50%;
+    background:#15120f;
+  }
+  .page{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse at 50% 0%, #fbf8f2 0%, var(--paper) 55%, var(--paper2) 100%);
+    transform-origin:left center;
+    transform-style:preserve-3d;
+    backface-visibility:hidden;
+    box-shadow: inset -18px 0 34px -22px rgba(60,40,20,.35),
+                inset 14px 0 26px -22px rgba(60,40,20,.25);
+    will-change:transform;
+    overflow:hidden;
+  }
+  /* lombada visual no canto esquerdo */
+  .page::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:14px;
+    background:linear-gradient(to right, rgba(60,40,20,.16), rgba(60,40,20,0));
+    pointer-events:none;
+    z-index:5;
+  }
+  /* dobra do canto direito */
+  .page::after{
+    content:"";
+    position:absolute; right:0; top:0; bottom:0; width:26px;
+    background:linear-gradient(to left, rgba(60,40,20,.08), rgba(60,40,20,0));
+    pointer-events:none;
+    z-index:5;
+  }
+  .page.flipping{ transition: transform .8s cubic-bezier(.4,.1,.25,1); }
+
+  /* ---------- Estrutura interna ---------- */
+  .page-inner{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    padding:var(--pad-y) var(--pad-x);
+  }
+  .page-header{
+    flex:0 0 auto;
+    display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted);
+    padding-bottom:12px; margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+  .page-header .h-left{font-weight:600; color:var(--ink);}
+  .page-header .h-right{font-variant-numeric:tabular-nums;}
+
+  .page-body{
+    flex:1 1 auto;
+    overflow:hidden;
+    column-fill:auto;
+    text-align:justify;
+    hyphens:auto;
+    -webkit-hyphens:auto;
+  }
+  .page-body p{
+    margin:0 0 .95em;
+    text-indent:1.4em;
+    orphans:3; widows:3;
+  }
+  .page-body p:first-of-type{ text-indent:0; }
+  .page-body p.dialogue{ text-indent:0; padding-left:1.4em; }
+  .page-body em{ font-style:italic; }
+  .page-body .batida{
+    text-align:center;
+    text-indent:0;
+    letter-spacing:.5em;
+    color:var(--muted);
+    margin:.7em 0;
+    font-size:.95em;
+  }
+  .page-body .lead::first-letter{
+    float:left;
+    font-size:3.1em;
+    line-height:.82;
+    padding:.08em .12em 0 0;
+    font-weight:400;
+    color:var(--accent);
+  }
+  .page-body .center{
+    text-align:center; text-indent:0; color:var(--muted); font-style:italic;
+  }
+
+  .page-footer{
+    flex:0 0 auto;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted);
+    padding-top:14px; margin-top:16px;
+    border-top:1px solid var(--line);
+  }
+
+  /* ---------- Capa ---------- */
+  .cover{
+    display:flex; align-items:center; justify-content:center;
+    position:absolute; inset:0;
+    overflow:hidden;
+    background:#0d0b08;
+  }
+  .cover-bg{
+    position:absolute; inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 1200' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='sky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%232b2530'/><stop offset='.55' stop-color='%231a1714'/><stop offset='1' stop-color='%230a0806'/></linearGradient><radialGradient id='glow' cx='.5' cy='.35' r='.7'><stop offset='0' stop-color='%23d9c9a8' stop-opacity='.35'/><stop offset='1' stop-color='%23d9c9a8' stop-opacity='0'/></radialGradient></defs><rect width='900' height='1200' fill='url(%23sky)'/><rect width='900' height='1200' fill='url(%23glow)'/><circle cx='680' cy='210' r='58' fill='%23e9dfc7' opacity='.38'/><circle cx='680' cy='210' r='110' fill='%23e9dfc7' opacity='.08'/><path d='M0 900 L140 820 L140 760 L190 760 L190 700 L280 620 L380 700 L380 760 L430 760 L430 820 L900 900 L900 1200 L0 1200 Z' fill='%23050503'/><rect x='300' y='760' width='52' height='72' fill='%23e9d6a4' opacity='.55'/><rect x='300' y='760' width='52' height='72' fill='none' stroke='%23050503' stroke-width='3'/><path d='M326 760 L326 832 M300 796 L352 796' stroke='%23050503' stroke-width='3'/><path d='M0 1000 L900 940' stroke='%23a89880' stroke-opacity='.10' stroke-width='2'/><path d='M0 1080 L900 1030' stroke='%23a89880' stroke-opacity='.07' stroke-width='2'/></svg>");
+    background-size:cover;
+    background-position:center;
+    opacity:.95;
+  }
+  .cover-overlay{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(0,0,0,.10) 0%, rgba(0,0,0,.55) 70%, rgba(0,0,0,.85) 100%);
+  }
+  .cover-frame{
+    position:relative; z-index:2;
+    text-align:center;
+    max-width:min(86%, 660px);
+    padding:48px 34px;
+    color:#f3ecdc;
+  }
+  .cover-frame .kicker{
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:11px; letter-spacing:.5em; text-transform:uppercase;
+    color:#c7b795; margin:0 0 22px; opacity:.9;
+  }
+  .cover-frame h1{
+    font-family:Georgia,serif;
+    font-weight:400;
+    font-size:clamp(34px, 6.4vw, 62px);
+    line-height:1.08;
+    margin:0 0 8px;
+    letter-spacing:.005em;
+    text-shadow:0 2px 24px rgba(0,0,0,.6);
+  }
+  .cover-frame h1 .amp{
+    display:block;
+    font-size:.42em;
+    letter-spacing:.36em;
+    text-transform:uppercase;
+    margin:.55em 0 .2em;
+    color:#c7b795;
+    text-shadow:none;
+  }
+  .cover-frame .rule{
+    width:72px; height:1px; margin:26px auto;
+    background:linear-gradient(to right, transparent, #c7b795, transparent);
+  }
+  .cover-frame .subtitle{
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:11px; letter-spacing:.34em; text-transform:uppercase;
+    color:#c7b795; margin:0;
+  }
+  .cover-frame .byline{
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:10px; letter-spacing:.28em; text-transform:uppercase;
+    color:#8f8471; margin:36px 0 0;
+  }
+
+  /* ---------- Sumário ---------- */
+  .toc-inner{ text-align:left; }
+  .toc-title{
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:11px; letter-spacing:.32em; text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 32px;
+    text-align:center;
+  }
+  .toc-list{
+    list-style:none; padding:0; margin:0;
+    font-family:Georgia,serif;
+    overflow-y:auto;
+    max-height:100%;
+  }
+  .toc-list li{ margin:0; }
+  .toc-list button{
+    appearance:none; background:transparent; border:0;
+    display:flex; align-items:baseline; gap:12px;
+    width:100%;
+    padding:9px 6px;
+    font:inherit; color:inherit;
+    text-align:left;
+    cursor:pointer;
+    border-bottom:1px dashed var(--line);
+    transition:background .18s ease, padding-left .18s ease, color .18s ease;
+  }
+  .toc-list button:hover{ background:rgba(107,74,43,.06); padding-left:12px; color:var(--accent); }
+  .toc-list .t-num{
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:10px; letter-spacing:.14em; color:var(--muted);
+    min-width:34px;
+    font-variant-numeric:tabular-nums;
+  }
+  .toc-list .t-dots{ flex:1; border-bottom:1px dotted var(--line); transform:translateY(-4px); }
+  .toc-list .t-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%; }
+  .toc-list .t-name.cover-entry{ color:var(--accent); font-style:italic; }
+
+  /* ---------- Controles / rodapé ---------- */
+  .chrome{
+    position:fixed; left:0; right:0; bottom:0;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:14px;
+    padding:14px clamp(16px, 4vw, 34px) calc(14px + env(safe-area-inset-bottom));
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:#b9b0a0;
+    pointer-events:none;
+    z-index:20;
+  }
+  .chrome button{
+    pointer-events:auto;
+    appearance:none;
+    background:rgba(30,24,18,.55);
+    color:#ece4d4;
+    border:1px solid rgba(200,180,150,.22);
+    backdrop-filter:blur(8px);
+    padding:9px 16px;
+    font:inherit;
+    letter-spacing:.14em;
+    border-radius:2px;
+    cursor:pointer;
+    transition:background .2s, border-color .2s, transform .12s;
+  }
+  .chrome button:hover{ background:rgba(60,45,30,.75); border-color:rgba(200,180,150,.45); }
+  .chrome button:disabled{ opacity:.35; cursor:default; }
+  .chrome .center{
+    display:flex; gap:18px; align-items:center;
+    pointer-events:auto;
+  }
+  .chrome .counter{
+    font-variant-numeric:tabular-nums;
+    letter-spacing:.1em;
+    color:#d8cfc0;
+  }
+  .chrome .toc-btn{ font-weight:600; }
+
+  /* Barra de progresso */
+  .progress{
+    position:fixed; top:0; left:0; right:0; height:2px;
+    background:rgba(0,0,0,.5); z-index:30;
+  }
+  .progress span{
+    display:block; height:100%; width:0;
+    background:linear-gradient(to right, #c7a878, #e8d9b0);
+    transition:width .5s cubic-bezier(.4,.1,.25,1);
+  }
+
+  /* Zonas de clique (esquerda/direita) */
+  .click-zone{
+    position:fixed; top:0; bottom:78px; width:26%;
+    z-index:10;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .click-zone.left{ left:0; cursor:w-resize; }
+  .click-zone.right{ right:0; cursor:e-resize; }
+  .click-zone::after{
+    content:""; position:absolute; top:50%; transform:translateY(-50%);
+    width:26px; height:26px; opacity:0;
+    transition:opacity .25s;
+    border-top:1.5px solid rgba(220,200,170,.7);
+    border-right:1.5px solid rgba(220,200,170,.7);
+  }
+  .click-zone.left::after{ left:24px; transform:translateY(-50%) rotate(-135deg); }
+  .click-zone.right::after{ right:24px; transform:translateY(-50%) rotate(45deg); }
+  body:hover .click-zone.left::after,
+  body:hover .click-zone.right::after{ opacity:.6; }
+
+  /* aviso de toque/click apenas em telas maiores que mostram a dica */
+  .hint{
+    position:fixed; left:50%; bottom:92px;
+    transform:translateX(-50%);
+    font-family:system-ui,sans-serif;
+    font-size:10px; letter-spacing:.24em; text-transform:uppercase;
+    color:rgba(200,180,150,.55);
+    pointer-events:none;
+    z-index:15;
+    opacity:0;
+    transition:opacity .3s;
+  }
+  body.show-hint .hint{ opacity:1; }
+
+  /* teclas de atalho para sumário */
+  .toc-back{
+    position:fixed; top:14px; left:16px;
+    z-index:25;
+    appearance:none; background:transparent;
+    border:1px solid rgba(200,180,150,.25);
+    color:#d8cfc0;
+    font:inherit; font-size:10px;
+    letter-spacing:.2em; text-transform:uppercase;
+    padding:7px 12px; border-radius:2px; cursor:pointer;
+    font-family:system-ui,sans-serif;
+    opacity:0; pointer-events:none;
+    transition:opacity .3s;
+  }
+  body.in-toc .toc-back{ opacity:1; pointer-events:auto; }
+
+  /* Telas estreitas */
+  @media (max-width:600px){
+    body{ font-size:16px; line-height:1.8; }
+    .page-inner{ padding:32px 22px; }
+    .chrome{ padding:10px 12px calc(10px + env(safe-area-inset-bottom)); }
+    .chrome button{ padding:8px 12px; font-size:10px; letter-spacing:.1em; }
+    .chrome .center{ gap:10px; }
+    .click-zone{ bottom:64px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .page.flipping{ transition:transform .35s ease; }
+    *{ animation-duration:.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><span id="progressBar"></span></div>
+
+<div class="book" id="book" aria-live="polite">
+  <!-- Páginas renderizadas dinamicamente -->
+</div>
+
+<button class="toc-back" id="tocBack" aria-label="Voltar do sumário">← Voltar</button>
+
+<div class="click-zone left"  id="zoneLeft"  aria-label="Página anterior"></div>
+<div class="click-zone right" id="zoneRight" aria-label="Próxima página"></div>
+<div class="hint" id="hint">← clique nas laterais para virar →</div>
+
+<nav class="chrome" aria-label="Controles do livro">
+  <button id="prevBtn" type="button">← Anterior</button>
+  <div class="center">
+    <button class="toc-btn" id="tocBtn" type="button">Sumário</button>
+    <span class="counter" id="counter">1 / 1</span>
+  </div>
+  <button id="nextBtn" type="button">Próxima →</button>
+</nav>
+
+<!-- ============================================================
+     HISTÓRIA — dados das seções.
+     Cada seção: [ "Título", [ "parágrafo", "parágrafo", ... ] ]
+     A paginação divide automaticamente em páginas de ~130 palavras.
+     ============================================================ -->
+<script>
+const STORY = [
+
+["Prólogo", [
+"Helena demorou muitos anos para entender a diferença. Durante a adolescência, acreditou que uma casa era apenas um lugar onde as pessoas dormiam, comiam e guardavam coisas. Depois descobriu que casas guardam também conversas interrompidas, portas fechadas, objetos que ninguém quer jogar fora e silêncios que se repetem.",
+"A casa de Vila Nova dos Ipês não foi a primeira casa da família. Também não foi a última. Mas foi a única que pareceu lembrar deles.",
+"Tudo começou antes da mudança. Antes do porão. Antes das vozes. Antes de Clara desaparecer. Começou na cozinha de uma casa comum, numa manhã comum, quando Helena tinha dezesseis anos e percebeu que a mãe dizia estar bem com a mesma voz que usava quando estava prestes a chorar.",
+"Talvez a história pudesse ter terminado ali. Helena poderia ter perguntado. Davi poderia ter escutado. Clara poderia ter aceitado ajuda. Talvez a família tivesse seguido outro caminho.",
+"Mas a vida não funciona como uma história em que todos percebem o perigo no primeiro capítulo. Às vezes as pessoas amam umas às outras e ainda assim não sabem o que fazer. Às vezes confundem cuidado com controle. Às vezes confundem silêncio com paz. Às vezes alguém sofre dentro da mesma casa durante meses e todos percebem apenas pedaços.",
+"E é nos pedaços que algumas coisas entram.",
+"Quando a família chegou àquela casa, Helena já carregava medo suficiente para reconhecer quando alguma coisa estava errada. O problema era que ainda não sabia distinguir o que vinha da casa e o que vinha de dentro deles.",
+"Talvez essa seja a pior parte de certas histórias: quando o monstro não precisa inventar a dor. Só precisa descobrir onde ela está.",
+"E esperar.",
+"Toc. Toc. Toc.",
+"Foi assim que começou."
+]],
+
+["Capítulo 1 — A Última Cidade", [
+"Helena tinha dezesseis anos e sabia decorar cozinhas.",
+"Era um talento inútil, mas era dela. Em três dias, ela sabia qual gaveta emperrava, qual torneira pingava durante a madrugada e qual armário precisava ser empurrado para fechar. Sabia onde o sol entrava primeiro pela manhã e onde a casa costumava fazer barulho quando todos dormiam. Ela atravessava a cozinha no escuro, de olhos fechados, e pegava um copo sem esbarrar em nada.",
+"Sua mãe dizia que aquilo era consequência de terem mudado tantas vezes.",
+"Helena achava que era coisa de quem nunca teve uma casa de verdade, só endereço.",
+"Já tinha morado em sete cidades. Pouso Alegre era a oitava e a que mais tinha durado: quatro anos, dois meses e uns dias. Na conta dela, quase uma vida inteira. Era a primeira vez que tinha um quarto só seu, com janela para o quintal e porta que trancava. Não que trancar adiantasse. A casa era pequena demais para segredos, e da cama dava para ouvir o pai tossindo no quarto ao lado. Mas o gesto importava. Girar a chave, ouvir o estalo, saber que existia um lugar. Tempo suficiente para Helena começar a esquecer como era fazer as malas.",
+"Talvez por isso gostasse tanto daquela casa. Era pequena, apertada e velha. Tinha três quartos, uma sala que mal comportava o sofá e uma cozinha onde a mesa ocupava quase todo o espaço. Os azulejos eram verdes. O armário pendia para a esquerda. O fogão precisava de um empurrão antes de acender.",
+"Naquela manhã de sábado, ela acordou com cheiro de bolo. Baunilha, manteiga, açúcar queimando de leve na forma. O cheiro dos sábados. Ficou um minuto na cama, de olhos fechados, ouvindo a casa funcionar: a torneira abrindo e fechando, o rádio na estação de sempre, a voz da mãe cantarolando baixinho. Era uma melodia sem letra, devagar, que subia e descia como quem embala alguém. Helena conhecia aquilo desde que se entendia por gente. Clara sempre cantou. Nunca disse o nome da música.",
+"Hoje vai ser um bom dia, pensou.",
+"Helena sorriu antes mesmo de levantar.",
+"Desceu. Clara estava de costas, com o cabelo preso de qualquer jeito e o avental florido.",
+"— Bom dia.",
+"Clara se virou.",
+"— Bom dia, filha. Dormiu bem?",
+"— Dormi.",
+"— O bolo tá quase pronto.",
+"Helena sentou. A mesa tinha marcas que ela conhecia como a palma da mão. O círculo claro de quando Miguel, aos três anos, derrubou um copo de leite quente. O risco fundo de quando Davi quis partir o pão com a faca errada, em mil novecentos e sei lá quando. Uma mancha azul de caneta, de uma noite de lição de matemática que terminou em choro e em chocolate quente. Helena passou o dedo nela, sem pensar.",
+"— Cadê o Miguel?",
+"— Dormindo.",
+"— De novo?",
+"Clara riu.",
+"— Ficou jogando até tarde.",
+"— E o pai?",
+"— Foi comprar pão.",
+"Helena olhou pela janela. O quintal era pequeno. Clara tinha colocado vasos em todos os cantos possíveis. Manjericão, alecrim, flores, uma trepadeira. Tudo verde. Tudo vivo.",
+"Helena olhou para a mãe.",
+"O pensamento veio sem aviso.",
+"Ela cuida das plantas melhor do que cuida de si.",
+"— Você tá bem, mãe?",
+"Clara parou. Por um instante, não respondeu.",
+"— Tô.",
+"— Tem certeza?",
+"— Tenho. Tô sempre bem.",
+"A frase pareceu estranha. Não pelo que dizia, mas pelo jeito como foi dita.",
+"Davi entrou alguns minutos depois, carregando o pão e o jornal. Beijou a testa de Clara e a de Helena.",
+"— Cheiro bom.",
+"— Bolo de fubá.",
+"— Meu favorito.",
+"Miguel apareceu depois, arrastando os pés. Sentou-se, olhou para os três e disse:",
+"— Só tá todo mundo aqui.",
+"Clara sorriu.",
+"— Tá todo mundo aqui.",
+"Helena observou o irmão. Havia alguma coisa no olhar dele.",
+"Depois do café, ela foi para o quintal. Por um instante, viu uma silhueta atrás da janela da cozinha. Alta. Imóvel.",
+"Piscou.",
+"Não havia ninguém.",
+"— Para de inventar coisa — murmurou.",
+"Entrou em casa.",
+"Mas, quando fechou a porta, ouviu três batidas na parede atrás dela.",
+"Toc.",
+"Toc.",
+"Toc.",
+"Helena se virou.",
+"Nada.",
+"Ainda assim, teve a sensação de que alguma coisa tinha acabado de acordar.",
+"Naquela tarde, Helena ficou mais tempo do que de costume na cozinha. Não havia nada de especial acontecendo. Era justamente isso que a incomodava. Clara lavava os pratos, Davi lia o jornal e Miguel desmontava alguma coisa na mesa. A família parecia inteira. Ainda assim, Helena sentia que estava olhando para uma fotografia prestes a desbotar.",
+"— Mãe, você lembra da nossa primeira casa? — perguntou.",
+"Clara parou com o prato na mão.",
+"— Lembro.",
+"— E da segunda?",
+"— Também.",
+"— De todas?",
+"Clara sorriu, mas demorou a responder.",
+"— Das casas, sim. Não sei se lembro de quem eu era em cada uma.",
+"Helena guardou aquilo. Não sabia por quê. Havia frases que pareciam pequenas no momento em que eram ditas e depois voltavam anos mais tarde.",
+"Naquela noite, antes de dormir, Helena escreveu o endereço da casa num pedaço de papel e colocou dentro da carteira. Era um hábito que tinha desde criança: guardar os endereços para não esquecer de onde tinha vindo. Na manhã seguinte, o papel estava dobrado de outro jeito. Helena tinha certeza de que não havia dobrado assim. Ela não comentou com ninguém. Ainda não havia nada para comentar. Era só uma dobra. Só uma sensação. Só o primeiro pequeno erro naquilo que ela chamava de normal."
+]],
+
+["Capítulo 2 — O Almoço de Domingo", [
+"O almoço de domingo era sagrado. Clara dizia que era o que mantinha a família unida.",
+"Naquele domingo, foram para a casa de Vera. A irmã de Clara morava a três ruas dali, numa casa grande demais para uma pessoa.",
+"Helena nunca gostava daquele lugar. Os móveis eram escuros. As cortinas pesadas. Havia um cheiro de madeira velha e naftalina.",
+"No corredor, uma fotografia chamou sua atenção. Um homem, uma mulher e duas crianças diante de uma casa que Helena não conhecia.",
+"— Tia, quem são?",
+"Vera olhou para a foto e demorou um pouco demais para responder.",
+"— Gente antiga.",
+"— Da família?",
+"— Não.",
+"Vera retirou a fotografia da parede.",
+"— Vai comer.",
+"Durante o almoço, Clara quase não falou. Depois, na cozinha, Vera perguntou se ela tinha voltado a parar o tratamento. Helena ouviu sem querer.",
+"— Eu tô cansada, Vera.",
+"— Eu sei.",
+"— Não quero ser um problema pro Davi.",
+"— Você não é um problema.",
+"Clara chorou. Helena saiu antes que fosse descoberta.",
+"No corredor, parou diante da gaveta onde Vera tinha guardado a fotografia.",
+"Por baixo da porta, viu um pedaço do papel. Havia uma data escrita no verso.",
+"1978.",
+"Helena não sabia por que aquela data lhe deu medo.",
+"Depois que os homens foram para a varanda, Vera continuou olhando para Clara como quem tentava decidir se devia dizer alguma coisa. Helena percebeu. A tia não parecia apenas preocupada com a depressão da irmã. Havia um medo mais antigo ali.",
+"— Tia — Helena chamou, quando Clara saiu para buscar sobremesa. — A mãe já ficou assim antes?",
+"Vera mexeu a colher dentro da xícara.",
+"— Sua mãe já passou por fases ruins.",
+"— Fases?",
+"— Algumas pessoas passam pela vida como se carregassem uma mala que ninguém vê. Às vezes conseguem carregar. Às vezes não.",
+"— E você sabe o que tem dentro da mala dela?",
+"Vera levantou os olhos.",
+"— Não tudo.",
+"Foi a resposta que Helena não esperava. Vera sempre parecia saber das coisas. Pela primeira vez, parecia não saber.",
+"Antes de irem embora, Helena voltou ao corredor para pegar o casaco. Passou diante de uma fotografia antiga. Era uma foto de família, amarelada pelo tempo. Vera e Clara apareciam muito jovens. Entre elas havia uma terceira menina, quase escondida atrás de uma cortina. Helena nunca a tinha visto.",
+"— Quem é ela?",
+"Vera apareceu atrás dela tão rápido que Helena se assustou.",
+"— Ninguém.",
+"— Mas ela está na foto.",
+"— Eu disse que é ninguém.",
+"Vera tirou a fotografia da parede e a virou para baixo. Helena não insistiu. Mas, no carro, ficou pensando na menina. Ela tinha a mesma expressão que Miguel fazia quando dizia que havia alguém no corredor: como se estivesse olhando para uma pessoa que os outros não conseguiam ver."
+]],
+
+["Capítulo 3 — O Que Ninguém Diz", [
+"Na segunda-feira, Clara não levantou da cama. Pela primeira vez, Davi percebeu que aquilo era maior do que cansaço.",
+"— Ela tá tomando os remédios? — perguntou.",
+"— Você sabia que ela tomava?",
+"Davi desviou o olhar.",
+"— Sabia.",
+"Helena sentiu raiva.",
+"— Então por que nunca fez nada?",
+"— Eu não sabia o que fazer.",
+"Foi a primeira vez que o pai disse aquilo.",
+"Não foi uma desculpa. Foi uma confissão.",
+"Naquela noite, Helena ouviu Clara chorando. Davi entrou no quarto dela. Dessa vez, não disse que ia resolver. Sentou-se ao lado da cama.",
+"— Eu não sei mais como chegar até você — ele disse.",
+"Clara não respondeu.",
+"Helena ouviu do corredor. Pela primeira vez, percebeu que o pai também estava com medo.",
+"No dia seguinte, encontrou um caderno escondido na gaveta da mãe. Leu apenas uma página.",
+"“Hoje eu acordei e por alguns minutos não lembrei onde estava. Depois lembrei. E fiquei com vontade de não lembrar de novo.”",
+"Helena fechou o caderno.",
+"Não contou a ninguém.",
+"Ainda não.",
+"Porque algumas coisas, depois que são ditas, mudam a casa inteira.",
+"Naquela segunda-feira, Helena começou a prestar atenção nas pequenas coisas. A mãe deixava o café esfriar. Esquecia o sal. Procurava objetos que estavam na própria mão. Às vezes ficava diante da janela por longos minutos. Não era preguiça. Helena já tinha entendido isso. Era como se Clara precisasse de um esforço enorme para participar de coisas que antes aconteciam sozinhas.",
+"Quando Davi chegou do trabalho, Helena o encontrou na garagem.",
+"— Pai, você precisa conversar com ela de verdade.",
+"— Eu conversei.",
+"— E?",
+"— Ela disse que está melhor.",
+"Helena respirou fundo.",
+"— Ela diz isso para todo mundo.",
+"Davi ficou calado. Depois deixou as ferramentas sobre a bancada.",
+"— Você acha que eu não percebo?",
+"— Acho que você percebe, mas não sabe o que fazer.",
+"A frase doeu nos dois.",
+"Davi não ficou bravo. Apenas olhou para a filha como se ela tivesse dito em voz alta uma coisa que ele vinha evitando admitir.",
+"— Talvez eu não saiba mesmo.",
+"Foi a primeira vez que Helena ouviu o pai admitir alguma fraqueza. Ela quis abraçá-lo, mas não abraçou. Ainda não sabia como conversar com adultos quando os adultos também estavam perdidos.",
+"Naquela noite, Clara chamou Helena antes de dormir.",
+"— Filha?",
+"— Oi.",
+"— Não fica com medo de mim.",
+"Helena sentiu o coração apertar.",
+"— Eu não tenho medo de você.",
+"Clara sorriu.",
+"— Ainda bem.",
+"Depois que Helena saiu, ouviu a mãe trancar a porta. Pela primeira vez, percebeu que o som da chave parecia mais triste do que qualquer choro."
+]],
+
+["Interlúdio — Helena", [
+"Helena começou a guardar pequenos objetos numa caixa de papelão debaixo da cama. Um ingresso de cinema, uma pedra encontrada na praça, uma caneta azul, uma fotografia de Miguel com os dentes da frente faltando. Eram coisas sem valor. Ela gostava justamente disso. Se a vida mudasse de repente, pelo menos aqueles objetos poderiam provar que um dia ela tinha estado ali.",
+"Depois que Clara piorou, a caixa ficou maior. Helena colocou dentro um bilhete da escola, uma receita médica, um papel com a letra da mãe e o endereço da casa antiga. Não percebia que estava tentando construir uma memória antes que alguma coisa desaparecesse.",
+"Um dia, Clara encontrou a caixa.",
+"— Você guarda tudo?",
+"— Algumas coisas.",
+"— Por quê?",
+"— Porque tenho medo de esquecer.",
+"Clara ficou pensativa.",
+"— Às vezes esquecer é uma forma de sobreviver.",
+"— E lembrar?",
+"— Às vezes é uma forma de não repetir.",
+"Helena não entendeu completamente naquele momento. Anos depois, entenderia. A memória não servia apenas para voltar ao passado. Servia para reconhecer padrões. Para perceber quando uma frase se repetia. Quando uma família começava a esconder as mesmas coisas. Quando alguém dizia “estou bem” com o mesmo sorriso que outro alguém havia usado décadas antes.",
+"Helena fechou a caixa naquela noite. Ainda não sabia, mas estava guardando a primeira versão da história que um dia contaria."
+]],
+
+["Capítulo 4 — O Emprego", [
+"Helena conseguiu o emprego na papelaria em março.",
+"Não precisava. O pai ganhava o suficiente. Mas ela queria. Queria ter o próprio dinheiro. Queria ter uma desculpa para sair de casa. Queria ter algo que fosse só dela.",
+"A papelaria ficava na esquina da praça. Era pequena, abarrotada de cadernos, canetas, livros. O dono, Seu Carlos, era um homem velho, de óculos grossos, que passava os dias lendo jornal e reclamando do governo.",
+"— Você sabe usar caixa? — ele perguntou, no primeiro dia.",
+"— Não.",
+"— Aprende.",
+"Helena aprendeu.",
+"Em uma semana, já sabia tudo. Como abrir a loja. Como fechar. Como organizar as prateleiras. Como lidar com os clientes.",
+"Gostava do trabalho. Gostava da sensação de ser útil. Gostava de ver o dinheiro entrando na gaveta. Gostava de saber que, no fim do mês, teria um envelope com o nome dela.",
+"— Você é boa nisso — Seu Carlos disse, um dia.",
+"— Obrigada.",
+"— Não é elogio. — Ele virou a página do jornal. — É constatação.",
+"Helena riu.",
+"Naquela tarde, Clara apareceu na papelaria.",
+"Helena estava organizando uma prateleira. Não viu a mãe entrar.",
+"— Helena.",
+"Ela virou-se. Clara estava na porta. Pálida. Os olhos fundos.",
+"— Mãe? O que você tá fazendo aqui?",
+"— Vim te buscar.",
+"— Me buscar? Por quê?",
+"— Não sei. — Clara olhou ao redor. — Só… senti que precisava vir.",
+"Helena olhou para ela. Para o rosto dela. Para as mãos dela, que tremiam.",
+"— Mãe, você tá bem?",
+"— Tô. — Clara forçou um sorriso. — Tô bem.",
+"Seu Carlos olhou por cima do jornal.",
+"— Tudo bem, dona Clara?",
+"— Tudo, Seu Carlos. — Clara sentou-se numa cadeira. — Só… cansada.",
+"Helena serviu um copo de água. Clara bebeu. As mãos ainda tremiam.",
+"Ela não tá bem.",
+"Helena não sabia o que fazer. Não sabia como ajudar.",
+"Então fez o que sempre fazia.",
+"Fingiu que estava tudo bem.",
+"Na papelaria, Helena descobriu que gostava de pessoas quando elas não sabiam nada sobre sua casa. Ali, ninguém perguntava se Clara estava melhor. Ninguém sabia que Davi chegava cansado. Ninguém sabia que Miguel dormia com a porta aberta porque dizia que o corredor ficava estranho à noite.",
+"Seu Carlos percebeu que Helena ficava distraída.",
+"— Problema em casa?",
+"— Não.",
+"— Você responde rápido demais.",
+"Ela sorriu.",
+"— Talvez.",
+"Seu Carlos fechou o jornal.",
+"— Minha mulher ficou doente quando eu tinha sua idade. Eu também achava que precisava resolver tudo.",
+"Helena olhou para ele.",
+"— E resolveu?",
+"— Não. Aprendi que algumas coisas melhoram quando você para de fingir que consegue controlar tudo.",
+"Ela pensou na mãe.",
+"Naquela tarde, Clara apareceu novamente. Mas dessa vez não pediu para Helena ir embora. Sentou-se numa cadeira perto da porta e ficou observando o movimento da rua.",
+"— Você gosta daqui? — perguntou.",
+"— Gosto.",
+"— Parece fácil.",
+"— O quê?",
+"— Saber o que fazer.",
+"Helena não respondeu.",
+"Clara passou o dedo pela borda do copo.",
+"— Quando eu tinha sua idade, eu achava que adulto sabia. Depois descobri que adulto só aprende a esconder melhor quando não sabe.",
+"Antes de sair, ela abraçou a filha. Foi um abraço longo. Helena percebeu que a mãe estava tremendo. Não perguntou por quê. Mas, naquela noite, começou a pensar que talvez ajudar Clara não significasse encontrar a frase certa. Talvez significasse perceber quando ela não conseguia pedir ajuda."
+]],
+
+["Capítulo 5 — A Visita", [
+"A tia Vera apareceu em casa numa quarta-feira.",
+"Helena estava no quarto, fazendo a lição. Ouviu a campainha. Ouviu a voz da tia. Ouviu a voz da mãe, mais baixa.",
+"Desceu. Vera estava na sala, sentada no sofá. Clara estava na cozinha, fazendo chá.",
+"— Oi, tia.",
+"— Oi, Helena. — Vera sorriu. Mas o sorriso não chegou aos olhos. — Como você tá?",
+"— Bem.",
+"— E a escola?",
+"— Bem.",
+"— E o trabalho?",
+"— Bem.",
+"Vera assentiu. Olhou para a cozinha. Para Clara.",
+"— Sua mãe tá bem?",
+"Helena hesitou.",
+"— Acho que sim.",
+"— Você acha?",
+"— Ela diz que tá.",
+"— E você acredita?",
+"Helena não respondeu.",
+"Vera suspirou.",
+"— Helena, senta aqui.",
+"Helena sentou-se. Vera segurou a mão dela.",
+"— Sua mãe tá doente.",
+"— Eu sei.",
+"— Você sabe o que é?",
+"— Depressão.",
+"— Sim. — Vera olhou nos olhos dela. — Depressão. Uma doença séria. Que precisa de tratamento.",
+"— Ela tá tomando remédio.",
+"— Tá? — Vera franziu a testa. — Ela me disse que parou.",
+"Helena sentiu o sangue esfriar.",
+"— Parou?",
+"— Foi o que ela disse.",
+"Helena olhou para a cozinha. Para a mãe. Para o chá que ela estava fazendo.",
+"Ela parou os remédios.",
+"E não contou pra ninguém.",
+"Vera foi embora depois do chá.",
+"Helena ficou na sala. Olhando para a porta. Para o lugar onde a tia estava sentada.",
+"Sua mãe tá doente.",
+"E ninguém faz nada.",
+"Helena subiu as escadas. Foi para o quarto. Fechou a porta.",
+"Sentou-se na cama. Olhou para a parede.",
+"O que eu faço?",
+"Não sabia.",
+"Como eu ajudo?",
+"Não sabia.",
+"E se ela piorar?",
+"Não sabia.",
+"Helena fechou os olhos. Sentiu as lágrimas virem. Não segurou.",
+"Chorou.",
+"Chorou pela mãe. Chorou por si mesma. Chorou pela família que estava desabando.",
+"E, no quarto ao lado, Clara dormia.",
+"Como se nada estivesse acontecendo.",
+"Depois da visita de Vera, Helena entrou no quarto da mãe para procurar o caderno. Não encontrou. Encontrou apenas roupas dobradas, uma caixa de remédios vazia e um envelope antigo. Dentro havia uma fotografia de Clara ainda adolescente. No verso, uma data: 1978. Helena franziu a testa. A mãe tinha nascido antes, mas não falava daquela época.",
+"Quando Clara entrou, Helena quase deixou a fotografia cair.",
+"— O que é isso?",
+"Clara ficou imóvel.",
+"— Uma coisa velha.",
+"— Quem está com você?",
+"Clara pegou a fotografia.",
+"— Minha mãe. Minha irmã Vera.",
+"— E essa menina?",
+"O silêncio mudou o quarto.",
+"— Que menina?",
+"Helena apontou.",
+"Clara olhou para a foto. Seu rosto perdeu a cor.",
+"— Não sei.",
+"— A tia sabe?",
+"— Não fala disso.",
+"Clara guardou a fotografia no envelope.",
+"— Helena, algumas coisas da minha infância não precisam fazer parte da sua.",
+"— Mas são suas.",
+"— Exatamente.",
+"Helena percebeu que a mãe não estava com medo da fotografia. Estava com medo da lembrança. E isso era diferente.",
+"Naquela noite, ela escreveu num papel: 1978. Menina da fotografia. Não perguntar ainda. Colocou o papel dentro do mesmo caderno onde anotava tarefas da escola. Sem perceber, começava a montar uma investigação que ainda não sabia que precisava."
+]],
+
+["Capítulo 6 — O Aniversário de Miguel", [
+"Miguel fez onze anos em abril.",
+"Clara queria fazer uma festa. Davi achou que era muita despesa. Clara insistiu. Davi cedeu.",
+"— Vai ser pequena — Clara disse. — Só a família. Um bolo. Alguns salgados.",
+"Helena ajudou. Fez os convites. Encomendou o bolo. Comprou os salgados.",
+"Na manhã do aniversário, Clara não levantou.",
+"— Mãe.",
+"Clara estava na cama. Os olhos abertos. Olhando para o teto.",
+"— Mãe, é o aniversário do Miguel.",
+"— Eu sei.",
+"— Você não vai levantar?",
+"— Vou. — Clara não se mexeu. — Só… mais um pouco.",
+"Helena esperou. Uma hora. Duas.",
+"Clara não levantou.",
+"A festa foi na casa da tia.",
+"Vera fez o bolo. Fez os salgados. Organizou tudo.",
+"— Cadê a Clara? — ela perguntou, quando Helena chegou.",
+"— Não veio.",
+"— Não veio?",
+"— Não conseguiu levantar.",
+"Vera fechou os olhos. Respirou fundo.",
+"— Tá bom. — Ela forçou um sorriso. — Vamos fazer a festa. O Miguel merece.",
+"Miguel não perguntou pela mãe.",
+"Não perguntou pela mãe, não olhou para a porta, não esperou. Apenas brincou. Riu. Comeu bolo. Como se a mãe não existisse.",
+"Helena observou. E sentiu algo quebrar dentro dela.",
+"Ele já se acostumou.",
+"Ele já aceitou que a mãe não vem.",
+"Quando voltaram para casa, Clara estava na cozinha.",
+"Fazendo o jantar. Como se nada tivesse acontecido.",
+"— Mãe.",
+"Clara virou-se. Sorrindo.",
+"— Oi, filha. Como foi a festa?",
+"— Você não foi.",
+"— Eu sei. — Clara mexeu a panela. — Não tava bem.",
+"— Você nunca tá bem.",
+"Clara parou. Olhou para Helena.",
+"— O que você quer que eu faça?",
+"— Quero que você fique bem.",
+"— Não é assim que funciona.",
+"— Então como funciona?",
+"Clara não respondeu.",
+"Voltou-se para a panela.",
+"E Helena sentiu, pela primeira vez, algo que não era tristeza.",
+"Era raiva.",
+"Miguel recebeu um presente que não queria: um relógio barato. Sorriu para não magoar a tia, mas depois deixou o relógio dentro de uma gaveta. Helena encontrou o menino sentado sozinho no quintal.",
+"— Você não gostou?",
+"— Gostei.",
+"— Então por que não usa?",
+"Miguel deu de ombros.",
+"— Porque ele para quando fica perto da parede.",
+"Helena riu.",
+"— Para de inventar.",
+"— Não estou inventando.",
+"Ele colocou o relógio sobre o muro. O ponteiro dos segundos parou. Helena olhou para o mostrador. Depois de alguns segundos, o ponteiro voltou a andar.",
+"— Tá vendo?",
+"Helena pegou o relógio. Funcionava normalmente.",
+"— Deve estar quebrado.",
+"Miguel balançou a cabeça.",
+"— Não. É a parede.",
+"Ele falou aquilo com tanta certeza que Helena não conseguiu rir de novo.",
+"Na festa, Clara apareceu apenas no final. Trouxe um bolo pequeno, feito às pressas. Miguel correu para abraçá-la.",
+"— Você veio.",
+"Clara fechou os olhos durante o abraço.",
+"— Vim.",
+"Helena observou os dois. Pela primeira vez, percebeu que Miguel não estava simplesmente ignorando a doença da mãe. Ele estava criando pequenas maneiras de continuar amando-a sem exigir que ela fosse a pessoa que era antes. Talvez fosse por isso que ele não perguntava nada. Talvez soubesse que algumas perguntas eram grandes demais para uma criança."
+]],
+
+["Capítulo 7 — O Trabalho de Davi", [
+"Davi trabalhava seis dias por semana.",
+"Saía às seis da manhã, voltava às seis da tarde. Chegava cansado. Comia. Tomava banho. Dormia.",
+"Helena não sabia o que o pai pensava. Ele nunca falava. Nunca reclamava. Nunca dizia nada.",
+"Ele sabe?",
+"Sabia que Clara estava doente? Sabia que ela chorava escondido? Sabia que ela parou os remédios?",
+"Helena não sabia.",
+"Uma noite, ela perguntou.",
+"— Pai, você acha que a mãe tá bem?",
+"Davi estava no sofá, assistindo ao jornal. Olhou para Helena.",
+"— Por que você tá perguntando isso?",
+"— Porque… — Helena hesitou. — Ela tá diferente.",
+"— Diferente como?",
+"— Mais quieta. Mais triste.",
+"Davi suspirou. Desligou a televisão.",
+"— Helena, sua mãe sempre foi assim.",
+"— Assim como?",
+"— Mais… sensível. — Davi escolheu as palavras com cuidado. — Ela sente as coisas mais fundo. Sempre foi assim.",
+"— Mas agora é diferente.",
+"— É?",
+"— É. — Helena sentou-se ao lado do pai. — Ela não sai da cama. Não come. Não conversa.",
+"Davi não respondeu.",
+"— Pai, ela precisa de ajuda.",
+"— Ela tá tomando remédio.",
+"— Ela parou.",
+"Davi olhou para ela. Os olhos dele estavam cansados.",
+"— Quem disse?",
+"— A tia Vera.",
+"Davi fechou os olhos. Respirou fundo.",
+"— Eu vou conversar com ela.",
+"— Você já conversou?",
+"— Vou conversar.",
+"— Pai…",
+"— Helena. — A voz dele era firme. — Eu vou resolver. Confia em mim.",
+"Helena olhou para o pai. Para o rosto dele. Para os olhos dele.",
+"Ele não vai resolver.",
+"Ele não sabe como.",
+"Helena levantou. Foi para o quarto.",
+"E, pela primeira vez, sentiu que estava sozinha.",
+"Davi começou a chegar mais cedo. Não porque tivesse menos trabalho, mas porque passou a recusar horas extras. O dinheiro fazia falta, porém ele percebeu que estava usando o trabalho como uma forma de não olhar para casa.",
+"Uma noite, encontrou Clara sentada no escuro.",
+"— Por que você não acendeu a luz?",
+"— Esqueci.",
+"Davi sentou ao lado dela.",
+"— A Vera falou comigo.",
+"Clara não respondeu.",
+"— Sobre os remédios.",
+"— Não quero discutir isso.",
+"— Não estou discutindo.",
+"Ele respirou fundo.",
+"— Eu tenho medo de não conseguir ajudar você.",
+"Clara olhou para ele.",
+"— Você não precisa me consertar.",
+"— Eu sei.",
+"— Não sabe.",
+"Davi abaixou a cabeça.",
+"— Talvez não.",
+"Foi uma conversa curta. Não resolveu nada. Mas foi a primeira em que Davi não tentou oferecer uma solução. Apenas ficou.",
+"Do corredor, Helena ouviu parte da conversa. Não entrou. Pela primeira vez, entendeu que o pai também precisava aprender. Ele amava Clara, mas amor não vinha com manual. Às vezes, ele tentava resolver a dor dela como quem consertava uma máquina. E Clara não era uma máquina.",
+"Naquela madrugada, Davi colocou uma cadeira perto da porta do quarto. Não disse nada. Só deixou ali. Como se dissesse que, se Clara precisasse, alguém estaria acordado."
+]],
+
+["Capítulo 8 — A Noite", [
+"Helena não dormia mais.",
+"Ficava acordada. Ouvindo a casa. Ouvindo a mãe.",
+"O choro vinha toda noite. Baixo. Abafado. Como se Clara estivesse com o rosto no travesseiro.",
+"Helena não se mexia. Ficava na cama. Olhando para o teto.",
+"Ela tá chorando.",
+"De novo.",
+"E eu não posso fazer nada.",
+"Uma noite, Helena levantou. Foi até o quarto dos pais. A porta estava entreaberta. Ela olhou.",
+"Clara estava sentada na cama. O rosto nas mãos. Chorando.",
+"Davi dormia ao lado. Não ouvia.",
+"Helena ficou parada. Olhando.",
+"Ele não ouve.",
+"Ele não vê.",
+"Ele não sabe.",
+"Helena voltou para o quarto. Deitou-se. Fechou os olhos.",
+"Mas o choro continuou.",
+"Por horas.",
+"Na manhã seguinte, Clara estava sorrindo.",
+"Fazendo café. Cantando.",
+"— Bom dia, filha.",
+"— Bom dia.",
+"Helena olhou para ela. Para o sorriso. Para a canção.",
+"Ela tá fingindo.",
+"Ela sempre finge.",
+"Helena sentou-se. Bebeu o café. Olhou para a mãe.",
+"Um dia ela não vai mais fingir.",
+"Um dia ela vai desabar.",
+"E ninguém vai estar pronto.",
+"Na noite seguinte, o choro não veio. Helena estranhou mais o silêncio do que o choro. Levantou-se e foi até o corredor. A porta de Clara estava aberta. O quarto vazio.",
+"— Mãe?",
+"Encontrou Clara na cozinha, sentada diante de uma xícara de café.",
+"— Não conseguiu dormir?",
+"— Não.",
+"— Eu também não.",
+"Clara apontou para a cadeira. Helena sentou.",
+"— Quando você era pequena — Clara disse — eu tinha medo de você crescer.",
+"— Por quê?",
+"— Porque eu achava que você ia descobrir que eu não sabia ser mãe.",
+"Helena sentiu vontade de responder que a mãe era boa. Mas não disse. Parecia que Clara não queria elogio. Queria ser ouvida.",
+"— Eu não preciso que você saiba tudo — Helena falou.",
+"Clara sorriu.",
+"— Você fala como se tivesse quarenta anos.",
+"— E você fala como se tivesse dezesseis.",
+"As duas riram. Foi uma risada pequena, mas verdadeira.",
+"Então Clara olhou para o corredor.",
+"— Você ouviu?",
+"Helena virou.",
+"Nada.",
+"— Ouvi o quê?",
+"— Três batidas.",
+"Elas ficaram quietas.",
+"Toc. Toc. Toc.",
+"Desta vez Helena ouviu. O som vinha da parede atrás delas. Clara fechou os olhos.",
+"— Não responde — disse.",
+"— Mãe, o que foi isso?",
+"— Nada.",
+"Mas Helena já sabia que não era nada. E, pela primeira vez, Clara parecia ter medo de uma coisa que não era apenas a própria tristeza."
+]],
+
+["Capítulo 9 — O Caderno", [
+"Helena encontrou o caderno por acidente.",
+"Estava procurando uma caneta na gaveta da mãe. Abriu a gaveta errada. E lá estava.",
+"Um caderno de capa dura, preto, gasto nas bordas. Escondido embaixo de uma pilha de roupas.",
+"Helena sabia que não deveria. Mas abriu.",
+"A caligrafia era da mãe. Inclinada. Apressada.",
+"“Dia 1. Hoje foi um dia difícil. Não consegui levantar da cama. O Davi fez o café. A Helena levou o Miguel para a escola. Eu fiquei aqui. Olhando para o teto. Pensando em nada. Pensando em tudo.”",
+"Helena virou a página.",
+"“Dia 2. Não consegui comer. Não consegui falar. Não consegui nada. O Davi perguntou se eu tava bem. Eu disse que sim. Ele acreditou. Ele sempre acredita.”",
+"“Dia 3. A Helena me olhou hoje. Com aqueles olhos. Ela sabe. Ela sempre sabe. Mas não diz nada. Não pergunta nada. Às vezes eu queria que ela perguntasse. Às vezes eu queria que ela me obrigasse a falar.”",
+"“Dia 5. Tô cansada. Tão cansada. Não é cansaço do corpo. É cansaço da alma. É como se eu estivesse carregando um peso que ninguém vê. Um peso que não me deixa respirar.”",
+"“Dia 7. Pensei em desistir hoje. Não sei de quê. Da vida? De tudo? Não sei. Só sei que pensei. E isso me assustou.”",
+"Helena fechou o caderno.",
+"As mãos tremiam.",
+"Ela pensou em desistir.",
+"Ela pensou em…",
+"Helena não conseguiu terminar o pensamento.",
+"Guardou o caderno. Fechou a gaveta.",
+"E ficou parada. Olhando para a parede.",
+"Eu preciso fazer alguma coisa.",
+"Mas o que?",
+"Helena voltou ao caderno depois que todos dormiram. Leu páginas antigas até encontrar uma frase diferente.",
+"“Hoje sonhei com uma casa que não conheço. Havia uma mulher na cozinha. Ela perguntou se eu queria descansar.”",
+"Helena releu. Depois outra linha: “Quando acordei, ouvi três batidas.”",
+"Ela fechou o caderno. O som das batidas da noite anterior voltou à memória.",
+"No dia seguinte, perguntou a Clara se já tinha escrito sobre sonhos.",
+"— Às vezes.",
+"— Você sonha com uma casa?",
+"Clara ficou parada.",
+"— Quem te contou isso?",
+"— Ninguém.",
+"— Helena.",
+"— Eu encontrei o caderno.",
+"Clara ficou magoada. Não de raiva. De invasão.",
+"— Você não deveria ter lido.",
+"— Eu estava preocupada.",
+"— Eu sei.",
+"Clara sentou-se na cama.",
+"— Tem coisas ali que eu escrevi quando estava pior. Não quero que você carregue isso.",
+"— Já estou carregando.",
+"A mãe levantou os olhos.",
+"Helena percebeu que tinha dito algo importante. Não queria carregar a doença da mãe, mas já carregava a preocupação, o medo e a sensação de que precisava vigiar cada silêncio.",
+"Naquela tarde, Clara pediu o caderno de volta. Helena entregou. Antes de fechar a porta, viu uma página aberta. Havia uma frase escrita recentemente: “A casa sabe quando estou cansada.”",
+"Helena não perguntou o que aquilo significava. Ainda."
+]],
+
+["Capítulo 10 — O Último Dia", [
+"O último dia em Pouso Alegre foi um sábado.",
+"Helena acordou cedo. O sol entrava pela janela. O quarto estava quase vazio. As caixas já estavam no carro. Só faltava o colchão e a roupa de cama.",
+"Ela levantou. Desceu. A casa estava silenciosa.",
+"Clara estava na cozinha. Fazendo café. Pela última vez naquela cozinha.",
+"— Bom dia — Helena disse.",
+"— Bom dia, filha. — Clara sorriu. O sorriso estava mais triste que o normal. — Dormiu bem?",
+"— Mais ou menos.",
+"— Também. — Clara serviu o café. — Não consigo dormir quando tem mudança.",
+"Helena sentou-se à mesa. Olhou para a cozinha. Para os azulejos verdes. Para o armário que pendia. Para o fogão que precisava de empurrão.",
+"— Vou sentir falta daqui.",
+"— Eu também.",
+"— A gente podia ficar.",
+"Clara olhou para ela. Havia algo nos olhos dela. Algo que Helena não conseguiu nomear.",
+"— Não podemos, filha.",
+"— Por quê?",
+"— Porque… — Clara hesitou. — Porque às vezes a gente precisa ir embora. Mesmo quando não quer.",
+"Helena não perguntou mais.",
+"Bebeu o café. Olhou para a mãe. Para o rosto dela. Para os olhos dela.",
+"Ela tá cansada.",
+"Mas não era só cansaço.",
+"Miguel desceu depois. Os olhos ainda sonolentos. O cabelo bagunçado.",
+"— Já vamos?",
+"— Já. — Davi apareceu na porta. — O carro tá pronto.",
+"Miguel olhou para a casa. Para a sala. Para a cozinha.",
+"— Vou sentir falta do meu quarto.",
+"— Vai ter um quarto novo. — Davi sorriu. — Maior.",
+"— Não quero um quarto maior. Quero o meu.",
+"— Eu sei, filho. — Davi agachou-se. Ficou na altura dele. — Mas às vezes a gente precisa trocar. Faz parte.",
+"Miguel não respondeu.",
+"Apenas olhou para a casa. Para as paredes. Para o teto.",
+"— Tchau, casa — ele disse.",
+"Helena sentiu um nó na garganta.",
+"Tchau, casa.",
+"A viagem foi longa.",
+"O carro era um Fiat Uno velho, do ano em que Helena nasceu. O porta-malas não fechava direito. As caixas se amontoavam no banco de trás, apertando as pernas de Miguel.",
+"Clara ia na frente. O corpo dela ocupava o banco do carona como um peso morto. Não estava dormindo — Helena sabia porque via o reflexo no retrovisor: os olhos abertos, fixos na estrada, mas sem ver nada.",
+"Davi dirigia. As mãos no volante. Os olhos na estrada. A boca fechada.",
+"Ninguém falava.",
+"Helena olhou pela janela. As árvores passavam. Os postes. As casas. Tudo passava.",
+"Tudo passa.",
+"Ela fechou os olhos.",
+"Tentou dormir.",
+"Não conseguiu."
+]],
+
+["Interlúdio — O Que Ficou Escondido", [
+"Durante meses depois da mudança, Helena evitou abrir a última caixa. Ela sabia o que havia dentro: papéis antigos, a fotografia de Lídia, uma cópia do diário de Rosa e o desenho que Miguel fizera na noite em que Clara desapareceu. Não queria jogar nada fora. Também não queria olhar.",
+"Certa tarde, Miguel apareceu na porta. Já estava mais velho, mais alto e menos disposto a falar sobre o que tinha visto.",
+"— Você ainda tem?",
+"— Tenho.",
+"— Posso ver?",
+"Helena abriu a caixa.",
+"Os dois ficaram em silêncio. Miguel pegou o desenho.",
+"— Eu desenhei isso porque achei que ela queria que eu lembrasse.",
+"— A casa?",
+"— Não. A mamãe.",
+"Helena olhou para o irmão.",
+"— Eu achava que você tinha medo dela.",
+"— Eu tinha medo de esquecer como ela era antes.",
+"A resposta ficou entre os dois.",
+"Miguel virou a fotografia de Lídia.",
+"— Você sabe o que aconteceu com ela?",
+"— Não.",
+"— Talvez isso seja bom.",
+"— Por quê?",
+"— Porque nem tudo precisa ter uma resposta para parar de machucar.",
+"Helena sorriu.",
+"— Você ficou inteligente.",
+"— Eu sempre fui.",
+"Os dois riram.",
+"Depois Miguel perguntou se ela ainda acreditava que a casa existia dentro deles.",
+"Helena pensou antes de responder.",
+"— Acho que algumas coisas ficam dentro da gente. Mas isso não significa que elas mandam.",
+"Miguel colocou o desenho de volta na caixa.",
+"— Então guarda.",
+"— Vou guardar.",
+"— Mas não escondida.",
+"Helena entendeu. Fechou a caixa e a colocou numa prateleira, à vista.",
+"Durante anos, aquela caixa ficou ali. Não como uma ameaça. Como um registro. Uma prova de que eles tinham passado por alguma coisa e sobrevivido sem precisar fingir que nada tinha acontecido.",
+"Foi uma das últimas vezes que Helena sentiu necessidade de falar sobre a casa. Depois, a vida ocupou o espaço. Trabalho. Filhos. Aniversários. Contas. Doenças comuns. Viagens. Brigas pequenas. Reconciliações.",
+"A casa não desapareceu. Apenas deixou de ser o centro da história.",
+"E talvez essa tenha sido a única forma verdadeira de vencê-la."
+]],
+
+["Nota Final", [
+"Helena nunca descobriu se a casa era realmente uma coisa sobrenatural ou se parte do que aconteceu poderia ser explicado por lembranças, medo, doença, coincidências e pessoas tentando dar sentido ao que não compreendiam. Talvez a casa tivesse existido exatamente como ela lembrava. Talvez tivesse sido algo mais simples. Talvez as duas coisas fossem verdade ao mesmo tempo.",
+"O que ela sabia era que o silêncio era real. A culpa era real. A doença de Clara era real. O amor daquela família também era real. E nenhuma dessas coisas precisava ser diminuída para que a outra existisse.",
+"Por isso, quando contou a história, Helena não escreveu que a casa era o monstro. Escreveu que a casa apenas descobriu onde a família já estava vulnerável.",
+"O resto, cada um deles precisou aprender a fazer sozinho."
+]],
+
+["Epílogo", [
+"Alguns anos depois, uma criança perguntou a Helena por que ela guardava uma fotografia tão velha. Helena respondeu que era de alguém que tinha amado muito.",
+"— Ela morreu?",
+"— Não sei exatamente como responder.",
+"A criança franziu a testa.",
+"— Como assim?",
+"Helena olhou para a fotografia de Clara.",
+"— Algumas pessoas continuam existindo mesmo depois que não estão mais perto da gente.",
+"A criança aceitou a resposta e saiu correndo. Helena ficou sozinha por alguns segundos.",
+"Olhou para a cozinha. Para a mesa. Para a janela. Para a luz entrando no chão.",
+"Não ouviu batidas.",
+"Não viu sombras.",
+"Apenas ouviu a vida acontecendo em outros cômodos.",
+"E percebeu que, durante muito tempo, tinha acreditado que sobreviver significava esquecer uma casa. Agora sabia que não. Sobreviver era poder lembrar sem voltar para dentro dela."
+]],
+
+["Última Frase", [
+"A casa ficou para trás. As paredes ficaram. As portas ficaram. Os nomes ficaram escritos em algum lugar. Mas Helena continuou. E, enquanto continuasse, nenhuma delas precisaria ser esquecida para que o futuro existisse.",
+"E quando a última lembrança chegou, Helena não fechou a porta. Deixou a luz entrar. Não porque tivesse certeza de que o passado havia acabado, mas porque finalmente sabia que passado não era lugar para morar. Era apenas lugar para visitar. Depois, era preciso voltar. Voltar para a mesa, para as pessoas, para o café, para as conversas. Voltar para a vida.",
+"FIM"
+]],
+
+["Parte II — O Que a Família Não Diz", [
+"Na última semana antes da mudança, Helena começou a reparar que cada pessoa da casa tinha uma maneira diferente de esconder medo.",
+"Davi trabalhava mais. Clara dormia mais. Miguel brincava mais alto. Helena perguntava mais.",
+"Nenhum deles dizia a palavra medo.",
+"Era uma palavra simples demais para o que estava acontecendo.",
+"Naquela noite, Davi encontrou Helena na cozinha.",
+"— Você está com medo? — perguntou.",
+"Ela pensou em mentir.",
+"— Estou.",
+"Davi assentiu.",
+"— Eu também.",
+"Helena olhou para ele.",
+"— Do quê?",
+"— De perder sua mãe.",
+"A resposta foi tão direta que Helena não soube o que dizer.",
+"Davi abriu uma gaveta, procurou alguma coisa e encontrou a velha colher de madeira de Clara. Colocou-a sobre a mesa.",
+"— Ela não larga isso desde que você era pequena.",
+"Helena segurou a colher.",
+"— Então leva.",
+"— Por quê?",
+"— Porque talvez a gente precise lembrar quem ela era antes de ficar doente.",
+"Helena guardou a colher numa caixa.",
+"Foi um gesto pequeno. Mas, anos depois, lembraria dele como uma das últimas coisas que a família fez junta sem perceber que estava se despedindo.",
+"Na despedida, Helena entrou no quarto vazio pela última vez. A janela estava aberta. O vento mexia a cortina. Ela passou a mão pela parede onde havia marcado a altura de Miguel em vários anos. Pequenos riscos de lápis. 8 anos. 9. 10. 11.",
+"Miguel apareceu na porta.",
+"— Vai apagar?",
+"— Não.",
+"— Então deixa.",
+"Helena pegou uma borracha e apagou apenas uma marca antiga, depois parou.",
+"— Por quê?",
+"— Porque a gente vai para outra casa.",
+"Miguel pensou.",
+"— E se eu crescer lá?",
+"— Vai continuar crescendo.",
+"— Então a marca não serve mais.",
+"Helena sorriu.",
+"— Talvez sirva para lembrar.",
+"Quando saíram, Clara ficou alguns segundos parada no portão. Olhou para trás. Helena percebeu que a mãe parecia aliviada e triste ao mesmo tempo.",
+"— Vamos — Davi chamou.",
+"Clara entrou no carro.",
+"Helena olhou para a casa pela última vez.",
+"Uma das janelas do andar de cima parecia aberta. Ela sabia que estava fechada. Davi tinha conferido. Mesmo assim, por um instante, Helena viu uma silhueta atrás da cortina. Uma mulher.",
+"Piscou. Não havia ninguém.",
+"Ela não contou. Não queria começar a viagem com uma história que ninguém acreditaria.",
+"Mas, quando o carro virou a esquina, ouviu três batidas no vidro traseiro. Miguel também ouviu. Os dois olharam um para o outro. Nenhum dos dois disse nada."
+]],
+
+["Capítulo 11 — A Estrada", [
+"A viagem para Vila Nova dos Ipês durou quase quatro horas. Em algum ponto, Helena percebeu que a estrada tinha ficado estreita demais para dois carros. Davi diminuiu a velocidade. Clara dormia ou fingia dormir. Miguel contava os postes.",
+"— Quantos faltam? — Helena perguntou.",
+"— Não sei.",
+"— Você está contando há quanto tempo?",
+"— Desde que a mãe começou a dormir.",
+"Helena olhou para frente. Não havia placas. O rádio perdeu o sinal. Por alguns minutos, o carro ficou em silêncio. Então Clara abriu os olhos.",
+"— Estamos chegando.",
+"Davi olhou para ela.",
+"— Você conhece o caminho?",
+"Clara não respondeu.",
+"Helena sentiu o primeiro medo verdadeiro da mudança. Não era medo da casa. Ainda não. Era a sensação de que a família estava indo para algum lugar que já conhecia uma parte deles.",
+"Quando a placa de Vila Nova dos Ipês apareceu, o relógio do painel marcou 3h17 por um segundo. Depois voltou ao horário normal.",
+"Ninguém viu, exceto Helena.",
+"A estrada para Vila Nova dos Ipês parecia não terminar. Depois de quase uma hora sem sinal de celular, Miguel começou a reclamar. Davi brincou que aquilo era bom. Clara não riu.",
+"Helena observava a mãe pelo espelho. Ela mantinha uma mão sobre o próprio pulso, apertando-o de vez em quando.",
+"— Mãe?",
+"— Estou bem.",
+"— Eu só perguntei se estava confortável.",
+"Clara sorriu sem graça.",
+"No meio da viagem, passaram por uma placa antiga indicando uma estrada de terra. O nome estava quase apagado: Estrada do Cedro. Clara pediu para Davi seguir em frente.",
+"— Você conhece? — ele perguntou.",
+"— Não.",
+"Mas Helena percebeu que ela conhecia.",
+"Davi parou num posto para abastecer. Enquanto ele pagava, Helena entrou na pequena loja. Atrás do balcão havia um calendário velho com uma fotografia de Vila Nova dos Ipês.",
+"— Essa cidade é daqui? — Helena perguntou ao homem.",
+"— É.",
+"— A casa do fim da Rua das Acácias fica longe?",
+"O homem ficou sério.",
+"— Qual casa?",
+"Helena descreveu. O homem não respondeu.",
+"— Você sabe onde é?",
+"— Toda cidade tem casa velha.",
+"Ele virou para outro lado.",
+"Quando Helena voltou ao carro, o homem saiu da loja e ficou observando o veículo até desaparecer. Ela contou a Davi. Ele deu de ombros.",
+"— Cidade pequena é assim.",
+"Helena não achou que fosse apenas isso."
+]],
+
+["Interlúdio — A Primeira Noite", [
+"A casa dormia de um jeito estranho. Não era silêncio. Era ausência de sons conhecidos. Em Pouso Alegre, Helena sabia reconhecer cada barulho: o caminhão passando cedo, o vizinho abrindo o portão, o rádio de Clara, o chuveiro de Miguel. Ali, tudo parecia esperar para acontecer.",
+"Helena ficou deitada, olhando para o teto. O relógio marcava duas e dezessete. Ela ouviu Davi tossir no quarto ao lado. Depois ouviu Clara levantar. Passos lentos. A porta abriu.",
+"Helena saiu para o corredor.",
+"Clara estava parada no fim da escada.",
+"— Mãe?",
+"Clara se virou.",
+"— Volta para o quarto.",
+"— O que você está fazendo?",
+"— Nada.",
+"— Você ia descer?",
+"Clara olhou para a escada.",
+"— Eu ouvi minha mãe.",
+"Helena sentiu um frio no estômago.",
+"— Sua mãe morreu faz anos.",
+"— Eu sei.",
+"— Então…",
+"— Eu sei, Helena.",
+"Clara parecia envergonhada.",
+"— Ela me chamou pelo apelido que usava quando eu era criança. Ninguém usa mais.",
+"Helena aproximou-se.",
+"— Você ouviu onde?",
+"Clara apontou para baixo.",
+"O porão.",
+"Helena olhou para a porta no fim do corredor. Estava fechada.",
+"— Vamos chamar o pai.",
+"Clara segurou o braço dela.",
+"— Não.",
+"— Por quê?",
+"— Porque ele vai dizer que não foi nada.",
+"Helena não respondeu. Aquilo doeu porque era verdade. Não que Davi fosse indiferente. Ele estava apenas tentando manter o mundo funcionando. Às vezes, quando uma família começa a quebrar, alguém escolhe consertar as coisas pequenas: torneira, carro, conta, comida. Não porque não ame os outros, mas porque é mais fácil apertar um parafuso do que encarar alguém chorando.",
+"Clara voltou para o quarto. Helena ficou no corredor.",
+"Então veio o som.",
+"Toc. Toc. Toc.",
+"A porta do porão não se mexeu. Mas, do outro lado, alguém respirou.",
+"Helena voltou para a cama e fechou a porta. Não dormiu. Quando o sol nasceu, encontrou três pequenas marcas na madeira do seu quarto. Como se unhas tivessem batido do outro lado."
+]],
+
+["Capítulo 12 — A Chegada", [
+"Vila Nova dos Ipês apareceu de repente.",
+"Uma placa enferrujada. Uma igreja com a torre torta. Um mercado chamado “Mercado do Zé”. Havia mais vacas do que pessoas. Havia mais silêncio do que vacas.",
+"Davi parou o carro na frente de uma casa.",
+"Helena abriu os olhos. Olhou pela janela.",
+"A casa ficava no fim de uma rua sem saída. Escondida atrás de uma cerca viva que ninguém podou em anos. Era grande demais para eles. Dois andares, um porão, um quintal que já foi jardim e agora era mato.",
+"A tinta descascava em placas, como pele queimada. As janelas eram olhos fundos.",
+"Helena desceu do carro.",
+"O ar tinha um cheiro doce e errado. Como flores apodrecendo em água parada. Ela sentiu um formigamento na nuca. O zumbido no ouvido esquerdo.",
+"Não. Ainda não. A gente acabou de chegar.",
+"Clara abriu a porta do carro. Pela primeira vez em semanas, ela sorriu. Mas não era um sorriso de chegada. Era um sorriso de reconhecimento.",
+"— Eu já estive aqui — ela disse.",
+"Davi franziu a testa.",
+"— Como assim?",
+"Clara não respondeu. Caminhou até a porta da frente, que estava destrancada, e entrou. Como se a casa estivesse esperando por ela.",
+"Helena ficou parada no meio do quintal, com Miguel agarrado à sua mão. O irmão olhou para a janela do segundo andar.",
+"— Tem alguém lá em cima — ele disse.",
+"Helena olhou. Não havia ninguém.",
+"— Não, Miguel.",
+"— Tem sim. Ele tá acenando.",
+"Helena apertou a mão do irmão com mais força do que pretendia. Miguel não reclamou. Miguel nunca reclamava.",
+"Dentro, a casa era um organismo.",
+"Helena não sabia como descrever de outra forma. As paredes tinham uma textura que não era exatamente papel de parede, nem exatamente tinta. Era algo entre. Algo que parecia respirar quando ninguém estava olhando diretamente.",
+"O assoalho de madeira rangia em padrões — não aleatórios, mas rítmicos. Como se a casa tivesse um batimento cardíaco.",
+"A sala era grande, com um pé-direito alto que fazia a voz ecoar. Havia móveis antigos cobertos por lençóis brancos. Clara passou a mão por um deles, e a poeira subiu em espiral, dançando na luz que entrava pela janela.",
+"— É perfeita — Clara disse.",
+"Davi olhou para ela. Havia algo nos olhos dele. Não era alívio. Era esperança. A esperança perigosa de quem acredita que um lugar novo pode consertar uma pessoa quebrada.",
+"Helena queria dizer que não podia. Queria dizer que a mãe não estava melhorando — estava apenas mudando de cenário. Mas ela não disse nada. Ela nunca dizia nada.",
+"— Vou levar as caixas — Davi disse, e saiu.",
+"Clara continuou na sala, os olhos percorrendo cada canto, cada sombra, cada rachadura. Havia algo de faminto naquele olhar. Como se ela estivesse procurando algo que sabia estar ali.",
+"— Mãe? — Helena chamou.",
+"Clara não respondeu.",
+"— Mãe.",
+"Clara virou-se lentamente. O sorriso ainda estava no rosto, mas os olhos… os olhos estavam em outro lugar.",
+"— Vai dar tudo certo aqui, filha. — A voz dela era calma. Calma demais. — Eu sinto.",
+"Helena sentiu o formigamento na nuca aumentar. O zumbido no ouvido esquerdo ficou mais alto.",
+"Ela não está melhor. Ela está apenas… esperando.",
+"Naquela noite, Helena escolheu o quarto do andar de cima.",
+"Era pequeno, com uma janela que dava para o quintal. Havia um armário embutido na parede, e quando ela o abriu, encontrou algo esquecido no fundo: um caderno velho, de capa dura, com as páginas amareladas.",
+"Ela o abriu. A caligrafia era feminina, inclinada, apressada. As primeiras páginas estavam arrancadas. Mas a última página tinha algo escrito:",
+"“Eles dizem que eu não deveria ter vindo. Mas eu já vim. E agora não dá mais para voltar.”",
+"Helena fechou o caderno. O coração batia rápido. O zumbido no ouvido esquerdo era um grito.",
+"Ela olhou pela janela. O quintal estava escuro, mas ela podia jurar que viu algo se mover entre as árvores. Algo alto. Algo magro. Algo que não era exatamente uma pessoa.",
+"Não é real. Não é real. Não é real.",
+"Ela repetiu isso para si mesma até dormir. Mas o sono não veio. E quando finalmente veio, foi povoado por sonhos que não eram dela.",
+"Sonhos de uma mulher que ela nunca conheceu. Uma mulher que morava naquela casa antes. Uma mulher que também tinha uma filha. Uma mulher que também estava afundando.",
+"E que nunca mais foi vista.",
+"Na primeira noite, ninguém dormiu direito. A casa fazia barulhos que Davi atribuía à madeira. Helena ouviu passos no andar de cima. Miguel disse ter ouvido alguém arrastando uma cadeira. Clara ficou acordada até de madrugada.",
+"No café, Davi tentou transformar tudo em brincadeira.",
+"— Casa velha fala.",
+"Miguel olhou para ele.",
+"— Essa fala demais.",
+"Helena quase riu.",
+"Depois do café, explorou o andar de cima. Havia três quartos. O de Helena ficava de frente para a rua. O de Miguel ficava ao lado do banheiro. O quarto dos pais tinha uma porta que não fechava completamente.",
+"No corredor, havia uma parede mais fria que as outras. Helena encostou a mão. Sentiu um arrepio.",
+"— Está gelada — disse Miguel atrás dela.",
+"— Você me assustou.",
+"— Desculpa.",
+"Ele colocou a mão na parede.",
+"— Aqui tem alguém.",
+"Helena puxou o braço dele.",
+"— Não fala isso.",
+"— Mas tem.",
+"— É uma parede.",
+"Miguel ficou olhando para ela.",
+"— Você também ouviu.",
+"Helena não respondeu. Porque tinha ouvido. Uma respiração muito baixa, do outro lado.",
+"Naquela noite, Helena colocou uma cadeira atrás da porta. Não por medo de alguém entrar. Por medo de alguém sair."
+]],
+
+["Capítulo 13 — O Primeiro Mês", [
+"O primeiro mês foi quase normal.",
+"Helena encontrou um emprego na padaria da praça. Miguel começou na escola nova. Davi conseguiu trabalho numa obra. Clara… Clara ficava em casa.",
+"No começo, Helena não notou. Estava ocupada demais. A mudança. O emprego. A escola. As coisas novas.",
+"Mas, no fim do mês, percebeu.",
+"Clara não saía de casa.",
+"Não ia ao mercado. Não ia à igreja. Não ia a lugar nenhum. Ficava no quintal. Olhando para o mato. Ou na sala. Olhando para as paredes.",
+"— Mãe, você não vai sair hoje?",
+"— Não. — Clara sorria. — Tô bem aqui.",
+"— Você não quer dar uma volta? Conhecer a cidade?",
+"— Outro dia.",
+"Outro dia nunca chegava.",
+"O primeiro mês teve dias bons. Essa foi a parte mais perigosa, porque deu a todos a esperança de que a mudança tinha funcionado. Clara plantou flores no quintal. Davi consertou o portão. Miguel encontrou uma escola pequena onde fez amigos. Helena começou a caminhar pela cidade.",
+"Houve uma tarde em que Clara riu de verdade. Davi contou uma história ridícula sobre o trabalho e ela quase derrubou o copo. Helena ficou olhando para a mãe e pensou que talvez tudo estivesse melhorando.",
+"Naquela mesma noite, Clara perguntou:",
+"— Você gosta daqui?",
+"— Gosto.",
+"— Eu também.",
+"— Então por que parece triste?",
+"Clara demorou.",
+"— Porque às vezes a tristeza vem junto com a gente.",
+"Helena não respondeu.",
+"Mais tarde, encontrou um desenho de Miguel no chão. Era a casa vista de frente. Havia quatro pessoas na janela. Helena reconheceu três: ela, Clara e Miguel. A quarta figura não parecia com Davi.",
+"— Quem é?",
+"Miguel deu de ombros.",
+"— Ela mora aqui.",
+"— Quem?",
+"— A mulher.",
+"Helena tentou rir.",
+"— Você inventou isso.",
+"— Não. Ela fica no quarto da mãe.",
+"Clara, que estava no corredor, ouviu. Seu rosto mudou.",
+"— Miguel, não fala isso.",
+"O menino olhou para ela.",
+"— Mas ela fala com você também."
+]],
+
+["Capítulo 14 — O Silêncio", [
+"O silêncio veio devagar.",
+"No começo, era só um silêncio a mais. Clara falava menos. Ria menos. Cantava menos.",
+"Depois, o silêncio cresceu.",
+"Clara parou de fazer o jantar. Dizia que não estava com fome. Dizia que ia comer depois. Dizia que era só cansaço.",
+"Davi não perguntava. Davi nunca perguntava.",
+"Helena perguntava.",
+"— Mãe, você tá bem?",
+"— Estou, filha.",
+"— Você não tá comendo.",
+"— Não tô com fome.",
+"— Você não tá dormindo.",
+"— Tô dormindo sim.",
+"— Mãe…",
+"— Helena. — A voz de Clara era calma. Firme. — Eu tô bem. Para de se preocupar.",
+"Helena não parou.",
+"O silêncio começou na mesa. Primeiro eram intervalos maiores entre uma fala e outra. Depois Clara parou de contar histórias. Davi passou a comer olhando para o prato. Miguel mexia na comida. Helena começou a odiar o som dos talheres.",
+"Um domingo, ela decidiu fazer perguntas.",
+"— O que cada um faria se pudesse morar em qualquer lugar?",
+"Miguel respondeu primeiro.",
+"— Em lugar nenhum.",
+"— Por quê?",
+"— Porque sempre tem que mudar.",
+"Davi disse que gostaria de uma casa perto do mar. Clara disse que gostaria de uma casa pequena. Helena disse que queria ficar onde estava.",
+"— Por quê? — Clara perguntou.",
+"— Porque eu cansei de ir embora.",
+"A frase deixou a mesa em silêncio.",
+"Clara abaixou os olhos.",
+"— Eu também.",
+"Foi quando a lâmpada da cozinha piscou três vezes. Davi levantou-se para verificar a fiação. Não encontrou nada.",
+"Naquela noite, Helena acordou com a impressão de que alguém tinha chamado seu nome. Foi até a cozinha. A cadeira de Clara estava puxada para trás. Sobre a mesa havia uma xícara vazia.",
+"Ela ouviu passos no corredor.",
+"— Mãe?",
+"Ninguém respondeu.",
+"Quando voltou para o quarto, encontrou a porta aberta. Tinha certeza de que a havia fechado.",
+"A partir daquela noite, começou a dormir com a luz acesa."
+]],
+
+["Capítulo 15 — O Choro", [
+"Helena acordou com o choro.",
+"Era de madrugada. A casa estava escura. O choro vinha do quarto dos pais. Baixo. Abafado.",
+"Helena ficou parada. Ouvindo.",
+"O choro continuou. Por minutos. Por horas. Helena não sabia.",
+"Ela não se mexeu. Ficou na cama. Olhando para o teto.",
+"Ela tá chorando. De novo.",
+"Na manhã seguinte, Clara estava sorrindo. Fazendo café. Cantando.",
+"Como se nada tivesse acontecido.",
+"Helena olhou para ela. Para o sorriso. Para a canção.",
+"Ela tá fingindo.",
+"Helena encontrou Clara chorando na lavanderia. A mãe estava sentada no chão, encostada na máquina de lavar.",
+"— Mãe?",
+"Clara limpou o rosto rapidamente.",
+"— Não é nada.",
+"— Não fala isso.",
+"Clara fechou os olhos.",
+"— Eu não sei como parar.",
+"Helena sentou ao lado dela. Não tentou consertar.",
+"— Então não para agora.",
+"— O quê?",
+"— De chorar.",
+"Clara olhou para a filha.",
+"Foi uma das primeiras vezes que Helena percebeu que não precisava ter a resposta. Podia simplesmente ficar.",
+"Depois de alguns minutos, Clara contou que tinha acordado de madrugada porque ouviu alguém cantando no corredor. Uma música antiga, a mesma que ela cantava na cozinha quando Helena era pequena.",
+"— Você cantou?",
+"— Não. Eu estava dormindo.",
+"— Talvez tenha sido um sonho.",
+"Clara assentiu, mas não parecia convencida.",
+"Naquela noite, Helena ouviu a mesma música. Muito baixa. Vinha de algum lugar atrás da parede. Não era uma gravação. Parecia uma voz humana, distante, repetindo apenas duas notas.",
+"Ela chamou Davi. Ele não ouviu nada.",
+"Miguel ouviu.",
+"Os dois ficaram no corredor, em silêncio.",
+"— É a mulher — Miguel disse.",
+"— Qual mulher?",
+"— A que está esperando a mamãe."
+]],
+
+["Capítulo 16 — Os Remédios", [
+"Helena encontrou os remédios por acidente.",
+"Estava procurando uma tesoura na gaveta da cozinha. Abriu a gaveta errada. E lá estavam.",
+"Frascos. Muitos frascos. Nomes que Helena não conhecia. Dosagens que ela não entendia.",
+"Ela pegou um. Leu o rótulo. Cloridrato de Sertralina. 50mg. Uso contínuo.",
+"Helena não sabia o que era. Mas sabia que era remédio. Remédio de verdade. Remédio que a mãe não tinha contado que tomava.",
+"Ela fechou a gaveta. Não disse nada.",
+"Mas, naquela noite, ficou acordada. Pensando.",
+"Ela tá doente. Tá tomando remédio. Não contou pra gente.",
+"Helena não sabia o que fazer. Não sabia como ajudar.",
+"Então fez o que sempre fazia.",
+"Nada.",
+"Os remédios estavam dentro de uma caixa de sapatos, escondida atrás de roupas. Helena não queria mexer, mas precisava entender por que Clara havia parado. Encontrou receitas, consultas antigas e uma folha com um número de telefone.",
+"No dia seguinte, Davi ligou para o médico. Helena ouviu apenas metade da conversa.",
+"— Ela parou por conta própria?",
+"Silêncio.",
+"— Entendi.",
+"Depois, Davi desligou e ficou sentado na cozinha.",
+"— Pai?",
+"— Ela precisa de acompanhamento.",
+"— E você vai levar?",
+"— Vou.",
+"Mas Clara recusou. Disse que não queria sair. Davi insistiu. Ela chorou. Helena entrou no meio.",
+"— Mãe, não precisa decidir tudo hoje. Só aceita conversar com alguém.",
+"Clara olhou para ela.",
+"— Você está virando minha mãe.",
+"A frase doeu.",
+"Helena saiu do quarto.",
+"Na cozinha, Davi a encontrou.",
+"— Ela não quis dizer isso.",
+"— Eu sei.",
+"— Você não pode carregar isso.",
+"— E quem carrega?",
+"Davi não respondeu.",
+"Naquela madrugada, Helena ouviu a mãe falando sozinha. Não eram palavras claras. Parecia uma conversa interrompida. Depois veio uma frase que Helena conseguiu entender: “Eu já estive aqui.”",
+"Helena ficou imóvel.",
+"A casa tinha sido construída décadas antes. Clara nunca tinha morado ali. Então por que dizia aquilo?"
+]],
+
+["Capítulo 17 — A Primeira Visão", [
+"Clara viu algo.",
+"Helena não sabia o quê. Mas viu. Estava no quintal, olhando para o mato. E, de repente, ficou paralisada. Os olhos fixos em algo que Helena não conseguia ver.",
+"— Mãe?",
+"Clara não respondeu.",
+"— Mãe, o que você tá olhando?",
+"— Nada. — A voz dela era distante. — Nada.",
+"Helena olhou para o mato. Não havia nada.",
+"Mas Clara continuou olhando. Por minutos. Por horas.",
+"Até que entrou. Sem dizer uma palavra.",
+"Helena ficou no quintal. Olhando para o mato. Tentando ver o que a mãe via.",
+"Não viu nada.",
+"Mas sentiu.",
+"Um arrepio. Um formigamento. Um zumbido.",
+"Tem algo errado.",
+"A primeira visão aconteceu diante da janela. Clara viu uma mulher parada no quintal. Helena correu para fora quando a mãe gritou. Não havia ninguém.",
+"— Você viu?",
+"— Vi.",
+"— Como ela era?",
+"Clara descreveu um vestido claro e cabelos presos. Depois ficou em silêncio.",
+"— Ela parecia comigo quando eu era jovem.",
+"Helena sentiu um frio no estômago.",
+"Na mesma noite, encontrou a fotografia antiga de Vera outra vez. A menina que aparecia atrás da cortina parecia usar um vestido parecido. Helena colocou a foto ao lado do desenho de Miguel. As duas figuras tinham a mesma postura.",
+"Ela começou a desconfiar de que os desenhos não eram invenções. Miguel podia estar desenhando aquilo que via.",
+"Quando perguntou, ele apenas disse:",
+"— Ela não gosta quando você procura.",
+"— Quem?",
+"— A casa.",
+"Helena corrigiu:",
+"— Casas não gostam nem desgostam.",
+"Miguel balançou a cabeça.",
+"— Essa gosta.",
+"Mais tarde, Helena encontrou uma marca úmida na parede do quarto dos pais. Parecia uma mão. Cinco dedos, compridos demais. Ela passou um pano. A marca desapareceu. No dia seguinte, estava novamente lá, um pouco mais perto da cama de Clara."
+]],
+
+["Capítulo 18 — O Caderno de Clara", [
+"Helena encontrou o caderno de Clara.",
+"Estava na gaveta da mesa de cabeceira. Escondido embaixo de uma pilha de roupas. Um caderno de capa dura, preto, gasto nas bordas.",
+"Helena sabia que não deveria. Mas abriu.",
+"A caligrafia era da mãe. Inclinada. Apressada.",
+"“Dia 1. Chegamos hoje. A casa é grande. Velha. Tem um cheiro que eu conheço, mas não sei de onde. Davi está animado. Helena está desconfiada. Miguel está… Miguel. Não sei o que se passa na cabeça dele. Talvez nada. Talvez tudo.”",
+"Helena virou a página.",
+"“Dia 2. Dormi mal. Sonhei com uma mulher. Não sei quem é. Mas ela me chamava pelo nome. Clara. Clara. Clara. Como se me conhecesse. Como se me esperasse.”",
+"Helena sentiu um arrepio.",
+"“Dia 5. Os remédios estão acabando. Não quero pedir mais. Não quero voltar ao posto. Não quero que Davi saiba que eu ainda preciso deles. Ele acha que eu estou melhor. Ele acha que a mudança foi boa para mim.",
+"Não foi.",
+"Mas não quero desapontá-lo. Não quero ser um peso. Não quero ser a mulher quebrada que ele carrega nas costas.",
+"Então finjo. Finjo que estou bem. Finjo que o café da manhã tem gosto. Finjo que o sol aquece. Finjo que a vida vale a pena.”",
+"Helena fechou o caderno.",
+"As mãos tremiam.",
+"Ela tá fingindo. Tá fingindo pra gente. Tá fingindo pra todo mundo.",
+"Helena não sabia o que fazer.",
+"Então fez o que sempre fazia.",
+"Nada.",
+"O caderno de Clara tinha páginas arrancadas. Helena percebeu que as páginas não estavam no lixo. Alguém as havia retirado com cuidado.",
+"Ela perguntou à mãe.",
+"— Você arrancou?",
+"Clara respondeu que não lembrava.",
+"No fundo da gaveta, Helena encontrou uma folha dobrada. Era de Clara, mas a letra parecia diferente. Havia apenas uma frase: “Não deixe Helena abrir a porta.”",
+"Helena não sabia qual porta. Perguntou a Miguel se ele sabia.",
+"— A de baixo.",
+"— O porão?",
+"Ele assentiu.",
+"— Mamãe já abriu.",
+"— Quando?",
+"— Antes da gente chegar.",
+"Helena sentiu a garganta secar.",
+"— Como você sabe?",
+"Miguel olhou para ela.",
+"— Ela me contou.",
+"Clara nunca havia contado aquilo.",
+"Naquela noite, Helena tentou abrir a porta do porão. Estava trancada. No dia seguinte, a chave apareceu sobre a mesa da cozinha. Ninguém admitiu ter colocado ali.",
+"Davi ficou irritado.",
+"— Não mexam nisso.",
+"Helena perguntou por quê.",
+"— Porque a casa já está mexendo demais com a gente.",
+"Era uma resposta estranha. Davi também estava começando a perceber."
+]],
+
+["Capítulo 19 — O Isolamento", [
+"Clara parou de sair.",
+"Não ia ao mercado. Não ia à igreja. Não ia a lugar nenhum.",
+"Ficava em casa. No quintal. Na sala. No quarto.",
+"Helena tentava conversar. Tentava puxar assunto. Tentava trazer a mãe de volta.",
+"— Mãe, vamos dar uma volta?",
+"— Não.",
+"— Mãe, tem uma feira na praça. Vamos?",
+"— Não.",
+"— Mãe, o Miguel tá com saudade de você.",
+"Clara olhou para ela. Os olhos estavam fundos.",
+"— Eu tô aqui.",
+"— Não tá. — Helena sentiu a voz falhar. — Você não tá aqui. Você tá… em outro lugar.",
+"Clara não respondeu.",
+"Apenas voltou a olhar para o mato.",
+"Clara parou de sair de casa. Depois parou de ficar na sala. Depois passou a permanecer quase sempre no quarto.",
+"Helena tentou acompanhá-la sem transformar aquilo em vigilância. Levava comida, abria a janela, perguntava se queria conversar. Às vezes Clara aceitava. Às vezes apenas segurava a mão da filha.",
+"Um dia, Clara disse:",
+"— Você acha que eu sou fraca?",
+"— Não.",
+"— Acha que eu estraguei vocês?",
+"— Não.",
+"— Então por que você olha para mim como se estivesse esperando eu desaparecer?",
+"Helena não soube responder.",
+"Clara virou para a parede.",
+"— Eu também sinto isso.",
+"Helena ficou em silêncio.",
+"Do outro lado da parede, ouviu uma batida. Depois outra. Clara fechou os olhos.",
+"— Não responde — murmurou.",
+"— Você conhece isso?",
+"— Conheço o que acontece quando alguém responde.",
+"Helena sentiu medo.",
+"— O que acontece?",
+"Clara demorou a falar.",
+"— A casa começa a oferecer aquilo que você mais quer.",
+"— E o que ela oferece para você?",
+"Clara olhou para a filha.",
+"— Descanso.",
+"Helena segurou a mão dela com força.",
+"— Então eu vou ficar aqui.",
+"Clara sorriu.",
+"— É justamente isso que ela quer que você faça."
+]],
+
+["Capítulo 20 — O Primeiro Grande Incidente", [
+"Clara quase deixou Miguel cair.",
+"Foi num domingo. Davi estava trabalhando. Helena estava no quarto. Miguel estava brincando no quintal.",
+"Clara estava na varanda. Olhando para o mato.",
+"Miguel subiu na árvore. Não era uma árvore alta. Mas era alta o suficiente para uma criança de dez anos.",
+"— Olha, mãe!",
+"Clara não olhou.",
+"— Mãe, olha!",
+"Clara não olhou.",
+"Miguel subiu mais. Um galho quebrou. Ele escorregou.",
+"Helena ouviu o grito. Desceu correndo.",
+"Clara estava parada. Olhando para o mato. Enquanto o filho caía.",
+"Helena chegou a tempo. Pegou Miguel no ar. Os dois caíram no chão. Miguel chorando. Helena tremendo.",
+"Clara continuou parada.",
+"— Mãe!",
+"Clara virou-se lentamente. Os olhos estavam vazios.",
+"— O que aconteceu?",
+"Helena olhou para ela. Incrédula.",
+"— O Miguel quase caiu. Você não viu?",
+"— Não. — Clara olhou para Miguel. Para o filho chorando no chão. — Não vi.",
+"Helena sentiu o sangue esfriar.",
+"Ela não viu. Ela não viu o filho caindo.",
+"Naquela noite, Helena chorou.",
+"Chorou pela primeira vez em meses. Chorou de raiva. De medo. De impotência.",
+"E, no quarto ao lado, Clara dormia.",
+"Como se nada tivesse acontecido.",
+"Miguel caiu da árvore, mas não se machucou. O susto foi maior que a queda. Clara estava na varanda quando aconteceu. Por alguns segundos, ficou imóvel, olhando para o menino.",
+"— Mãe! — Helena gritou.",
+"Clara correu. Foi a primeira vez em semanas que Helena viu a mãe se mover sem hesitar. Clara chegou até Miguel, segurou o rosto dele e perguntou se estava bem.",
+"— Estou.",
+"Ela chorou.",
+"— Desculpa.",
+"Miguel não entendeu.",
+"— Pelo quê?",
+"Clara abraçou o filho.",
+"Depois, já em casa, Davi discutiu com ela.",
+"— Você precisa prestar atenção.",
+"— Eu sei.",
+"— Não basta saber.",
+"Clara ficou em silêncio.",
+"Helena entrou no quarto.",
+"— Pai, chega.",
+"Davi olhou para ela.",
+"— Eu estou com medo.",
+"— Eu também.",
+"Os três ficaram em silêncio.",
+"Foi naquele momento que Davi contou algo que nunca tinha contado: quando era criança, sua própria mãe passou por uma fase em que ficou meses sem sair do quarto. Ele lembrava do pai dizendo que aquilo era frescura. Davi jurara que nunca faria o mesmo. E, sem perceber, tinha passado meses tentando resolver tudo sozinho.",
+"Helena percebeu que a história não começava com Clara. A família já carregava silêncios antes dela."
+]],
+
+["Capítulo 21 — A Conversa", [
+"Helena confrontou a mãe.",
+"Foi naquela noite. Depois do incidente. Helena esperou Davi dormir. Esperou Miguel dormir. E depois, desceu até o quarto de Clara.",
+"A porta estava aberta. Clara estava na cama, os olhos abertos, fixos no teto.",
+"— Mãe.",
+"Clara não se mexeu.",
+"— Mãe, eu preciso falar com você.",
+"— Estou ouvindo. — A voz dela era calma. Distante.",
+"Helena sentou-se na beira da cama.",
+"— Você quase deixou o Miguel cair hoje.",
+"— Foi um acidente.",
+"— Não foi. — Helena sentiu a voz tremer. — Você não estava olhando. Você não viu.",
+"— Eu estava distraída.",
+"— Mãe, você tá sempre distraída. Você tá sempre em outro lugar. Você não tá aqui.",
+"Clara virou a cabeça. Olhou para Helena. Havia algo nos olhos dela. Algo que não era raiva. Não era medo. Era… paz.",
+"— Eu sei.",
+"— Você sabe?",
+"— Eu sei que não tô aqui. — Clara sorriu. — Eu sei que tô em outro lugar. Um lugar onde eu não preciso fingir. Onde eu não preciso sorrir. Onde eu posso ser triste.",
+"— Mãe…",
+"— Helena, eu tô cansada. — A voz dela era um sussurro. — Tão cansada. Eu passei a vida inteira fingindo. Fingindo que tava bem. Fingindo que o casamento era feliz. Fingindo que a maternidade era realizada. Fingindo que a vida valia a pena.",
+"— Você não precisa fingir comigo.",
+"— Preciso. — Clara tocou o rosto de Helena. A mão estava fria. — Você é minha filha. Você não merece carregar o meu peso.",
+"— Eu quero carregar.",
+"— Não quer. — Clara balançou a cabeça. — Você não sabe o que é. Você não sabe o que é acordar todo dia e sentir que não deveria estar aqui. Que você é um erro. Que o mundo seria melhor sem você.",
+"Helena sentiu lágrimas nos olhos.",
+"— Isso não é verdade.",
+"— É verdade pra mim. — Clara fechou os olhos. — Sempre foi.",
+"Helena não respondeu.",
+"Ficou ali, sentada na beira da cama, ouvindo a respiração da mãe ficar mais lenta.",
+"Até que Clara dormiu.",
+"E Helena ficou acordada.",
+"Olhando para a parede.",
+"Que parecia pulsar."
+]],
+
+["Interlúdio — Os Nomes", [
+"Depois da fotografia de Rosa, Helena começou a procurar nomes. Não na internet. Não havia internet em casa naquela época. Procurou em jornais velhos da biblioteca municipal. Procurou em recortes que Vera guardava. Procurou nas conversas dos vizinhos.",
+"Encontrou pouco.",
+"Rosa Almeida. Desaparecida em 1979.",
+"Lídia Ferreira. Mudou-se em 1986.",
+"Marta Siqueira. Internada por alguns meses e depois voltou para a cidade natal.",
+"Cecília Ramos. Nunca encontrou o registro certo.",
+"Os casos não eram iguais. Algumas mulheres simplesmente tinham ido embora. Algumas estavam vivas. Algumas tinham recebido tratamento. Algumas histórias não tinham nada de sobrenatural.",
+"Isso era importante para Helena. Ela não queria transformar sofrimento real em lenda. O que assustava não era a ideia de que toda mulher triste virava fantasma. O que assustava era outra coisa: perceber quantas famílias tinham aprendido a chamar silêncio de normalidade.",
+"A casa parecia aproveitar exatamente isso. Não criava a dor. Encontrava a dor que já estava ali e dava a ela uma porta.",
+"A conversa entre Helena e Clara durou quase uma hora. Helena perguntou sobre a casa. Clara negou. Perguntou sobre a fotografia. Clara chorou. Perguntou sobre a menina. Clara ficou em silêncio.",
+"— Mãe, quem é ela?",
+"Clara respondeu tão baixo que Helena quase não ouviu.",
+"— Minha irmã.",
+"Helena congelou.",
+"— Você tem outra irmã?",
+"— Tinha.",
+"Clara contou que, quando era criança, havia uma menina chamada Lídia. Vera era a mais velha. Clara, a do meio. Lídia, a mais nova. Um dia, Lídia desapareceu durante uma mudança. A família disse que ela tinha fugido. Nunca encontraram o corpo.",
+"— E a casa?",
+"Clara balançou a cabeça.",
+"— Eu não quero falar.",
+"— Ela estava em alguma casa?",
+"— Helena.",
+"— Mãe.",
+"Clara segurou o braço dela.",
+"— Se você continuar procurando, vai começar a ouvir.",
+"— Ouvir o quê?",
+"Clara olhou para a parede.",
+"— Meu nome.",
+"Naquela noite, Helena acordou com alguém sussurrando no corredor.",
+"“Helena.”",
+"Ela não respondeu.",
+"O sussurro veio de novo.",
+"“Helena.”",
+"Depois, três batidas.",
+"Toc. Toc. Toc.",
+"Ela permaneceu deitada. O coração disparado.",
+"Então ouviu uma voz infantil do outro lado da porta:",
+"— Ela já sabe."
+]],
+
+["Interlúdio — O Que Vera Não Contou", [
+"Vera esperou Helena dormir para tirar a fotografia do envelope. Sentou-se na cozinha e deixou a imagem sobre a mesa. Lídia. Clara. Ela mesma. Três meninas. Três expressões diferentes.",
+"Ela lembrava daquele verão. Lembrava do cheiro da casa. Lembrava de Lídia dizendo que alguém morava dentro da parede. Lembrava da mãe mandando que ela calasse a boca.",
+"Mas havia uma coisa que nunca contara a Clara.",
+"Na noite em que Lídia desapareceu, Vera a viu entrar no corredor. Não estava sozinha. Uma mulher caminhava atrás dela. Vera era criança, mas reconheceu o vestido. Era o mesmo que aparecia na fotografia encontrada anos depois.",
+"Vera correu para chamar a mãe. Quando voltou, Lídia tinha sumido. A mãe disse que ela fugira. Depois disse que ninguém deveria falar sobre aquilo.",
+"Durante décadas, Vera tentou acreditar.",
+"Até Clara começar a ouvir vozes.",
+"Vera percebeu que a história estava voltando.",
+"Foi por isso que, quando Helena ligou, ela decidiu contar uma parte. Não tudo. Ainda não. Tinha medo de que colocar todas as peças na mão de uma menina de dezesseis anos fosse apenas outra forma de condená-la.",
+"Mas agora Helena estava dentro da casa.",
+"Vera abriu uma gaveta e tirou um envelope antigo. Dentro havia uma carta de Lídia.",
+"“Se eu não voltar, não procurem por mim. Ela gosta quando procuram. Ela faz a pessoa acreditar que ainda pode salvar quem já foi embora.”",
+"Vera leu a frase várias vezes.",
+"Depois queimou a carta.",
+"Não porque quisesse esconder a verdade. Porque tinha medo de que a verdade também pudesse ser uma porta.",
+"Na manhã seguinte, decidiu ir até Vila Nova dos Ipês. Não sabia se chegaria a tempo. Mas, pela primeira vez em décadas, Vera entendeu que guardar silêncio também era uma escolha. E talvez fosse justamente a escolha que aquela casa esperava das pessoas."
+]],
+
+["Capítulo 22 — A Fotografia", [
+"Vera chegou numa tarde de chuva trazendo uma caixa.",
+"— Eu deveria ter mostrado isso antes.",
+"Dentro havia fotografias antigas. Uma delas mostrava a casa. A mesma fachada. A mesma janela do segundo andar. Só que a fotografia era de décadas atrás.",
+"No verso havia uma data: 1978.",
+"— Rosa — Vera disse. — Era o nome dela.",
+"Helena segurou a fotografia.",
+"— Você conheceu ela?",
+"— Não pessoalmente. Minha mãe conheceu. Dizia que Rosa tinha uma filha pequena e que, depois de uma crise, sumiu. A família disse que ela tinha ido embora.",
+"— E você acredita nisso?",
+"Vera olhou para a casa pela janela.",
+"— Não mais.",
+"Ela contou que outras mulheres foram associadas àquela casa ao longo dos anos. Não havia documentos suficientes para provar uma história única. Havia apenas coincidências. Nomes. Desaparecimentos. Famílias que preferiam não falar.",
+"Helena virou a fotografia. No canto, escrito a lápis, havia outra palavra: “Clara”.",
+"Vera não tinha colocado aquilo ali.",
+"As duas ficaram em silêncio.",
+"A fotografia encontrada por Helena tinha outra cópia escondida atrás da moldura. Na segunda, Lídia aparecia inteira. Estava ao lado de Clara. No verso havia um endereço escrito à mão. Helena reconheceu o nome da rua: era a rua da casa onde estavam morando.",
+"Ela correu até Vera.",
+"A tia demorou para abrir a porta. Quando viu a fotografia, perdeu a expressão.",
+"— Quem te deu isso?",
+"— Encontrei.",
+"Vera sentou-se.",
+"— Sua mãe não deveria ter trazido isso de volta.",
+"— Lídia morou naquela casa?",
+"Vera demorou a responder.",
+"— Por pouco tempo.",
+"— O que aconteceu?",
+"— Ela desapareceu.",
+"— Como?",
+"— Do jeito que algumas pessoas desaparecem quando todo mundo decide não fazer perguntas.",
+"Helena sentiu raiva.",
+"— Vocês sabiam?",
+"— Éramos crianças.",
+"Vera contou que a família alugou a casa por alguns meses. Lídia dizia ouvir uma mulher chamando seu nome. Depois começou a desenhar portas. Um dia, não estava mais no quarto. A porta do porão estava aberta.",
+"— E sua mãe?",
+"— Disse que Lídia tinha fugido.",
+"Vera nunca acreditou.",
+"Quando Helena saiu, Vera chamou:",
+"— Não entre no porão.",
+"— Por quê?",
+"— Porque minha irmã voltou de lá diferente. E eu não quero perder outra pessoa."
+]],
+
+["Capítulo 23 — As Visões", [
+"Clara começou a ver coisas.",
+"No começo, eram vultos. Sombras nos cantos. Formas que desapareciam quando ela olhava diretamente.",
+"Depois, os vultos ficaram mais nítidos. Mais definidos.",
+"E, por fim, começaram a falar.",
+"Helena não sabia o que a mãe ouvia. Mas via. Via Clara conversando com o vazio. Via Clara rindo de coisas que ninguém dizia. Via Clara chorando sem motivo.",
+"— Mãe, com quem você tá falando?",
+"— Ninguém.",
+"— Mãe, eu tô vendo. Você tá falando com alguém.",
+"— Não tô.",
+"— Mãe…",
+"— Helena. — A voz de Clara era fria. — Me deixa em paz.",
+"Helena não deixou.",
+"As visões de Clara ficaram mais frequentes. Ela via uma mulher sentada à mesa. Às vezes via Lídia. Às vezes via uma versão mais jovem de si mesma. O pior era quando via Helena.",
+"— Ela estava no corredor — disse Clara.",
+"— Quem?",
+"— Você.",
+"— Eu estava no meu quarto.",
+"Clara chorou.",
+"— Eu sei. Mas era você.",
+"Helena começou a entender que a casa não mostrava simplesmente fantasmas. Ela mostrava possibilidades. Memórias. Medos. Coisas que poderiam acontecer.",
+"Uma madrugada, Helena viu a mãe caminhando pelo corredor. Clara estava de olhos abertos, mas parecia dormir.",
+"— Mãe?",
+"Clara parou diante da porta do porão.",
+"— Ainda não — murmurou.",
+"— O que você está fazendo?",
+"Clara virou-se. Por um segundo, seu rosto pareceu mais jovem.",
+"— Ela está esperando.",
+"— Quem?",
+"Clara apontou para a porta.",
+"— A casa.",
+"Depois voltou para o quarto sem lembrar de nada.",
+"Helena ficou diante da porta. Colocou a mão na maçaneta. A madeira estava quente. Do outro lado, alguém bateu três vezes.",
+"Helena retirou a mão."
+]],
+
+["Capítulo 24 — Os Amigos de Miguel", [
+"Miguel começou a desenhar casas.",
+"No começo, Helena achou que era só uma fase. Depois percebeu que todos os desenhos eram iguais. Uma casa grande. Janelas pretas. Uma porta no fundo. E, quase sempre, quatro pessoas do lado de fora.",
+"— Quem são? — ela perguntou.",
+"— A gente.",
+"— E por que a mãe está atrás?",
+"Miguel olhou para o desenho.",
+"— Ela não tá atrás.",
+"— Então onde ela tá?",
+"Ele apontou para uma das janelas.",
+"— Ali.",
+"Helena sentiu frio.",
+"Naquela noite, Miguel falou dos amigos.",
+"— Eles moram nas paredes.",
+"Davi tentou rir.",
+"— Amigos imaginários?",
+"Miguel balançou a cabeça.",
+"— Eles não são imaginários. Eles moravam aqui antes.",
+"Clara deixou o garfo cair.",
+"Ninguém perguntou por quê.",
+"Miguel começou a conversar com os amigos que ninguém via. No começo, Helena tentou tratar como imaginação. Crianças inventavam amigos. Era normal. Mas Miguel sabia coisas que não tinha como saber.",
+"— A mulher do vestido chama Rosa — disse um dia.",
+"— Quem te contou?",
+"— Ela.",
+"— E Lídia?",
+"Miguel ficou sério.",
+"— Lídia não gosta de falar.",
+"— Por quê?",
+"— Porque ela ficou muito tempo esperando.",
+"Helena sentiu um arrepio.",
+"— Esperando o quê?",
+"Miguel apontou para a parede.",
+"— Alguém abrir.",
+"Naquela tarde, Miguel desenhou um corredor cheio de portas. Em cada porta havia um nome. Rosa. Lídia. Marta. Cecília. Clara. Helena.",
+"— Por que meu nome está aí?",
+"Ele não respondeu.",
+"Davi encontrou o desenho depois e ficou bravo.",
+"— Chega dessas histórias.",
+"Miguel chorou.",
+"Helena defendeu o irmão.",
+"— Ele não está inventando.",
+"Davi olhou para ela.",
+"— Você também está começando a acreditar.",
+"— Eu estou começando a perceber.",
+"Davi ficou em silêncio. Depois pegou o desenho e guardou numa gaveta. Não jogou fora. Essa foi a primeira vez que Helena percebeu que o pai também estava com medo."
+]],
+
+["Capítulo 25 — As Paredes", [
+"As manchas de umidade começaram a crescer. Helena tentou limpá-las. No dia seguinte, voltaram.",
+"Uma delas parecia uma mulher de perfil. Outra parecia uma criança.",
+"Clara passou a mão pela parede.",
+"— Ela tá com frio.",
+"— Quem?",
+"Clara percebeu o que tinha dito.",
+"— Ninguém.",
+"Davi decidiu chamar um pedreiro. O homem veio, examinou a parede e disse que havia infiltração.",
+"Antes de ir embora, perguntou:",
+"— Essa casa já teve problema de umidade?",
+"Davi respondeu que não sabia.",
+"O homem olhou para a parede mais uma vez.",
+"— Tem coisa antiga aqui.",
+"Naquela noite, Helena encontrou uma caixa escondida atrás do armário do corredor. Dentro havia fotografias, recibos e uma lista de nomes.",
+"Rosa.",
+"Lídia.",
+"Marta.",
+"Cecília.",
+"Helena.",
+"Ela ficou olhando para o último nome.",
+"Ainda não estava escrito à tinta. Era apenas um risco de lápis.",
+"As paredes começaram a mostrar manchas que pareciam rostos. Davi tentou pintar por cima. No dia seguinte, as manchas apareciam novamente. O pintor que ele chamou encontrou madeira antiga sob o reboco.",
+"— Essa parede já foi aberta — disse o homem.",
+"— Como sabe?",
+"— Tem marca de batente.",
+"Helena olhou. Havia mesmo uma moldura escondida dentro da parede.",
+"Quando o homem foi embora, Helena e Miguel ficaram sozinhos no corredor. Miguel apontou para uma rachadura.",
+"— Aqui.",
+"Helena passou a unha. Uma pequena lasca caiu. Atrás havia papel. Ela puxou. Era uma lista de nomes escrita à mão.",
+"Rosa. Lídia. Marta. Cecília.",
+"E, abaixo, um espaço vazio.",
+"Helena sentiu o estômago embrulhar.",
+"— Não tem meu nome.",
+"Miguel respondeu:",
+"— Ainda não.",
+"Ela guardou o papel. Naquela noite, ouviu o barulho de lápis riscando parede. Foi até o quarto de Miguel. Ele dormia. Sobre a mesa havia um desenho novo.",
+"Uma mulher estava atrás de Helena.",
+"No desenho, a mulher segurava sua mão."
+]],
+
+["Capítulo 26 — O Porão", [
+"Davi havia trancado o porão desde a mudança.",
+"Naquela noite, Helena encontrou a porta aberta.",
+"Não desceu.",
+"Fechou-a.",
+"Quando voltou para o quarto, encontrou Miguel sentado na cama.",
+"— Você abriu a porta?",
+"— Não.",
+"— Então quem abriu?",
+"Miguel respondeu:",
+"— Minha amiga.",
+"A porta do porão abriu sozinha. Davi ouviu o estrondo e desceu primeiro. Encontrou uma escada estreita, coberta de poeira. Havia marcas no chão como se caixas tivessem sido arrastadas recentemente.",
+"— Ninguém entra aqui — disse ele.",
+"Helena apareceu atrás.",
+"— Então quem abriu?",
+"Davi não respondeu.",
+"No fundo havia uma sala pequena. Um armário, uma mesa e dezenas de objetos antigos. Brinquedos, fotografias, roupas infantis, xícaras. Nada parecia pertencer à mesma família.",
+"Helena encontrou uma colher de madeira igual à que sua mãe usava para fazer bolo.",
+"— Isso não pode ser.",
+"Davi pegou.",
+"— Talvez seja parecida.",
+"Na parede havia riscos de altura. Crianças haviam sido medidas ali durante décadas. Alguns nomes ainda eram legíveis.",
+"Davi tocou um deles.",
+"— Rosa.",
+"Helena olhou para ele.",
+"— Você conhece esse nome?",
+"— Não.",
+"Mas a voz dele dizia que conhecia.",
+"No canto, Miguel apareceu.",
+"— Eu disse para não entrar.",
+"— Como você chegou aqui?",
+"Ele apontou para uma porta menor.",
+"— Ela abriu para mim.",
+"Davi perguntou quem. Miguel não respondeu.",
+"Quando subiram, a porta do porão fechou atrás deles. E, antes de a tranca cair, Helena ouviu uma mulher dizer seu nome."
+]],
+
+["Capítulo 27 — A Menina", [
+"Helena voltou ao porão na madrugada.",
+"O quarto no fundo não aparecia em nenhuma planta da casa. Era pequeno. Tinha uma cama infantil, uma escrivaninha e dezenas de marcas na parede.",
+"Uma menina estava sentada na cama.",
+"Helena parou.",
+"O rosto da menina era o seu.",
+"— Você demorou — ela disse.",
+"— Quem é você?",
+"— Depende de quem está perguntando.",
+"— O que você quer?",
+"— Que você pare de tentar salvar todo mundo.",
+"Helena sentiu raiva.",
+"— Minha mãe está aqui?",
+"A menina olhou para a parede.",
+"— Ainda não.",
+"A palavra ficou no ar.",
+"Ainda.",
+"A menina apareceu no corredor no começo da noite. Helena pensou que fosse Miguel usando uma fantasia. Depois viu o rosto. Era o próprio rosto dela, mas mais jovem.",
+"— Você demorou — disse a menina.",
+"Helena não conseguiu se mexer.",
+"— Quem é você?",
+"— Você.",
+"— Não.",
+"A menina sorriu.",
+"— Ainda não.",
+"Helena perguntou por Clara.",
+"A menina apontou para a porta do quarto.",
+"— Sua mãe está aprendendo a descansar.",
+"— Ela não quer isso.",
+"— Quer.",
+"— Você não sabe.",
+"A menina inclinou a cabeça.",
+"— Eu sei o que você vai querer quando cansar.",
+"Helena sentiu a garganta fechar.",
+"— O quê?",
+"— Que alguém carregue você.",
+"A menina desapareceu quando Helena piscou.",
+"Depois disso, Helena passou a desconfiar de qualquer aparição que parecesse familiar. A casa não precisava assustá-la com monstros. Bastava usar aquilo que ela amava.",
+"Na madrugada, encontrou Clara sentada na cozinha.",
+"— Você falou com ela?",
+"Clara olhou para Helena.",
+"— Com quem?",
+"— Com a menina.",
+"Clara empalideceu.",
+"— Não olha para ela.",
+"— Por quê?",
+"— Porque ela aprende com você."
+]],
+
+["Capítulo 28 — Rosa", [
+"Helena encontrou o nome Rosa em um diário escondido no assoalho. A mulher havia morado naquela casa décadas antes. Tinha uma filha. O marido trabalhava longe. Ela escrevia sobre cansaço, culpa e a sensação de que a casa a observava.",
+"A última página dizia apenas:",
+"“Hoje ouvi minha filha me chamar do outro lado da parede.”",
+"Helena fechou o diário.",
+"Miguel apareceu atrás dela.",
+"— Ela não morreu.",
+"— Quem disse?",
+"— Rosa.",
+"— Você conhece ela?",
+"Miguel apontou para a parede.",
+"— Ela mora ali.",
+"O diário de Rosa estava escondido dentro de uma caixa de farinha antiga. A primeira página dizia apenas: “Se alguém encontrar, não confie na casa.”",
+"Rosa descrevia uma família que chegou à casa décadas antes. A mãe sofria em silêncio. A filha mais velha tentava cuidar dela. Um menino dizia conversar com pessoas nas paredes. Helena sentiu um nó no estômago ao ler. Era a mesma história.",
+"Em outra página, Rosa escreveu que a casa não criava a dor. Ela encontrava a dor e a alimentava.",
+"“Ela espera a pessoa cansar. Depois oferece descanso. Espera o filho sentir culpa. Oferece uma forma de consertar. Espera alguém ter medo de perder. Oferece a promessa de não perder.”",
+"Helena fechou o diário.",
+"A frase explicava tudo sem explicar nada.",
+"No final havia uma anotação: “Se eu desaparecer, minha filha vai achar que foi culpa dela.”",
+"Helena começou a chorar.",
+"Ela entendeu que aquele era o verdadeiro ciclo. A casa precisava que alguém acreditasse que era responsável por salvar outra pessoa.",
+"E Helena já estava começando a acreditar nisso."
+]],
+
+["Capítulo 29 — O Que a Casa Quer", [
+"A casa não atacava todo mundo.",
+"Helena percebeu isso quando Davi começou a dormir melhor, enquanto Clara piorava.",
+"A casa oferecia coisas diferentes para cada pessoa.",
+"Para Davi, oferecia esperança. Fazia Clara parecer bem por algumas horas.",
+"Para Miguel, oferecia companhia.",
+"Para Helena, oferecia pertencimento.",
+"Para Clara, oferecia descanso.",
+"Era isso que tornava tudo tão perigoso.",
+"A casa não precisava obrigar ninguém a entrar.",
+"Ela apenas oferecia exatamente aquilo que a pessoa mais queria.",
+"Naquela noite, Clara disse:",
+"— Eu acho que encontrei um lugar onde posso descansar.",
+"Helena entendeu.",
+"E teve medo.",
+"A casa começou a oferecer coisas diferentes a cada um. Davi ouviu a voz do próprio pai dizendo que ele finalmente tinha feito tudo certo. Miguel encontrou uma sala cheia de brinquedos onde ninguém dizia que ele estava inventando coisas. Helena viu uma versão da família feliz, sem doença, sem medo.",
+"Clara viu a cozinha antiga de Pouso Alegre. O bolo estava no forno. Helena era criança. Davi ria. Tudo parecia perfeito.",
+"— Você pode ficar — disse uma voz.",
+"Clara tocou a mesa.",
+"— E meus filhos?",
+"— Eles ficarão também.",
+"Ela quase acreditou.",
+"Do outro lado da casa, Helena percebeu que a visão da mãe estava ligada à dela. Se Clara ficasse, Helena poderia entrar naquela memória e permanecer ali.",
+"Foi quando entendeu o preço. A casa não prometia apenas aquilo que as pessoas queriam. Ela oferecia uma vida sem a necessidade de enfrentar a vida real.",
+"Helena procurou Davi.",
+"— A gente precisa tirar a mãe daqui.",
+"— Eu sei.",
+"— E se ela não quiser sair?",
+"Davi fechou os olhos.",
+"— Então vamos lembrar a ela que amar alguém não significa obedecer ao que a pessoa quer quando ela está sofrendo.",
+"Foi uma das primeiras decisões maduras que Davi tomou durante toda aquela história."
+]],
+
+["Interlúdio — Procurar", [
+"Durante os primeiros dias depois do desaparecimento, Helena e Davi fizeram tudo o que podiam. Foram à delegacia. Procuraram hospitais. Perguntaram aos vizinhos. Refizeram o caminho entre a casa e a praça. Vera ficou com Miguel.",
+"Davi não dormia.",
+"Helena também não.",
+"Em uma das noites, sentados no carro, Davi disse:",
+"— Eu sempre achei que proteger vocês significava resolver as coisas.",
+"— E agora?",
+"— Agora eu sei que tem coisa que não se resolve sozinho.",
+"Helena olhou para as mãos dele no volante.",
+"— Eu também achei que precisava salvar a mãe.",
+"Davi virou para ela.",
+"— Você não precisava.",
+"— Eu sei disso agora.",
+"Era mentira. Ela ainda não sabia. Mas começava a entender.",
+"No banco de trás, Miguel dormia abraçado ao desenho da casa. No papel, uma das janelas estava riscada com tanta força que quase rasgara a folha.",
+"Abaixo, ele tinha escrito apenas uma palavra: “saída”."
+]],
+
+["Capítulo 30 — A Noite em que Clara Sumiu", [
+"A febre de Miguel começou naquela tarde. Davi saiu para buscar remédio. Helena ficou com o irmão.",
+"Clara desapareceu durante vinte minutos.",
+"Quando Helena percebeu, encontrou a porta do porão aberta.",
+"Desceu.",
+"Clara estava diante da parede.",
+"— Mãe.",
+"Clara virou-se.",
+"— Eu só quero dormir.",
+"— Então dorme comigo.",
+"— Eu tentei.",
+"— A gente pode tentar de novo.",
+"Clara chorou.",
+"— Eu não consigo mais carregar isso.",
+"Helena abraçou a mãe.",
+"Por alguns segundos, Clara voltou a ser apenas Clara.",
+"Depois, a parede bateu por dentro.",
+"Toc.",
+"Toc.",
+"Toc.",
+"Clara olhou para trás.",
+"E desapareceu.",
+"Não houve grito. Não houve sangue. Apenas silêncio.",
+"Na noite em que Clara desapareceu, Helena acordou com o cheiro de bolo. O mesmo cheiro da cozinha de Pouso Alegre. Foi até a sala. Clara estava diante da porta do porão.",
+"— Mãe.",
+"Clara virou.",
+"— Ela disse que eu posso descansar.",
+"— Você pode descansar aqui. Com a gente.",
+"— Não é o mesmo.",
+"Helena segurou sua mão.",
+"— Vem.",
+"Por um momento, Clara pareceu voltar.",
+"— Filha, eu sinto muito.",
+"A parede atrás dela se abriu como uma porta. Não houve barulho. Apenas uma escuridão onde antes havia madeira.",
+"Helena puxou Clara.",
+"— Não!",
+"Clara desapareceu.",
+"Davi chegou segundos depois. Os dois procuraram. O quarto estava vazio. O corredor estava vazio. O porão estava aberto.",
+"Miguel apareceu com o desenho de Rosa nas mãos.",
+"— Ela levou a mamãe.",
+"Helena respondeu:",
+"— Não. Ela não levou. A mamãe entrou.",
+"Essa diferença importava. Pela primeira vez, Helena não queria tratar Clara como alguém sem escolha. Clara estava doente, vulnerável e manipulada, mas continuava sendo uma pessoa.",
+"Helena decidiu que iria buscá-la. Não porque fosse responsável por salvá-la, mas porque era sua mãe e ela ainda podia tentar alcançá-la."
+]],
+
+["Interlúdio — Davi", [
+"Antes de Clara desaparecer, Davi tinha uma rotina que ninguém conhecia inteira. Ele acordava antes de todos, ficava alguns minutos sentado na beira da cama e só depois levantava. Não era oração. Não era planejamento. Era uma espécie de preparação para o dia. Ele precisava se convencer de que conseguiria atravessar mais uma manhã sem perceber o quanto estava perdido.",
+"Na oficina, os colegas conheciam Davi como o homem que nunca reclamava. Ele consertava motores, carregava peças pesadas, resolvia problemas. Quando alguém dizia que uma máquina não tinha conserto, ele desmontava até encontrar alguma coisa que pudesse ser trocada. Essa habilidade foi útil durante anos. Também foi uma armadilha.",
+"Com Clara, não havia peça quebrada. Não havia parafuso. Não havia manual.",
+"Ele tentou comprar coisas. Uma televisão nova. Uma poltrona confortável. Flores. Um rádio. Tentou levá-la para jantar. Tentou fazer piadas. Tentou pedir que ela pensasse nos filhos. Depois percebeu que algumas dessas tentativas, embora feitas por amor, só faziam Clara sentir mais culpa.",
+"Na noite em que ela desapareceu, Davi ficou sozinho na cozinha durante quase uma hora. Colocou as mãos sobre a mesa e chorou em silêncio. Helena encontrou o pai assim.",
+"— Eu achei que conseguiria — ele disse.",
+"— Conseguir o quê?",
+"— Fazer ela ficar bem.",
+"Helena sentou ao lado dele.",
+"— Ninguém consegue fazer outra pessoa ficar bem sozinho.",
+"Davi respirou fundo.",
+"— Eu devia ter aprendido isso antes.",
+"— Nós dois.",
+"Ele olhou para ela.",
+"— Não. Você tinha dezesseis anos.",
+"Helena quis discutir. Mas não discutiu. Pela primeira vez, permitiu que o pai fosse apenas pai, e não alguém que precisava saber todas as respostas.",
+"Foi naquela noite que Davi decidiu procurar ajuda. Não para apagar Clara. Não para esquecer a casa. Para aprender a continuar sem transformar a culpa numa segunda família dentro de casa."
+]],
+
+["Capítulo 31 — O Quarto Vazio", [
+"Antes de desaparecer, Clara deixou o quarto arrumado. A cama feita. A roupa dobrada. O caderno guardado.",
+"Helena ficou diante da porta por vários minutos. Aquilo parecia mais cruel do que encontrar tudo bagunçado. Era como se a mãe tivesse saído por alguns minutos e pudesse voltar a qualquer momento.",
+"Davi entrou.",
+"— Não mexe em nada.",
+"— Por quê?",
+"— Não sei.",
+"Ele sentou na cama. Pegou uma das almofadas e apertou contra o rosto. Helena nunca tinha visto o pai chorar daquele jeito.",
+"— Eu achei que ela estava melhor — ele disse.",
+"— Ela não estava.",
+"— Eu sei.",
+"Helena sentou ao lado dele.",
+"— A gente precisa procurar.",
+"— Eu vou procurar.",
+"— Não sozinho.",
+"Davi olhou para ela.",
+"— Não sozinho.",
+"Naquela noite, pela primeira vez, eles procuraram juntos. Não apenas pela casa, mas pela cidade. E quanto mais perguntavam, mais percebiam que algumas pessoas conheciam aquela história antes deles.",
+"O quarto vazio parecia maior sem Clara. O vestido dela continuava pendurado atrás da porta. A xícara estava na mesa. Um livro permanecia aberto na cama. Era como se a casa tivesse levado apenas a pessoa, deixando todo o resto para provocar culpa.",
+"Davi sentou-se no chão.",
+"— Eu devia ter percebido antes.",
+"Helena sentou ao lado dele.",
+"— Eu também.",
+"— Você é filha. Não deveria ter que perceber.",
+"— Mas eu percebi. E não consegui impedir.",
+"Davi olhou para ela.",
+"— Isso não é culpa sua.",
+"— Então também não é sua.",
+"Ele começou a chorar.",
+"Foi a primeira vez que Helena viu o pai chorar sem esconder.",
+"Miguel ficou na porta. Não entrou.",
+"— Ela está chamando.",
+"— Quem? — Davi perguntou.",
+"— Mamãe.",
+"Helena levantou.",
+"— Onde?",
+"Miguel apontou para o corredor.",
+"— Não com os ouvidos."
+]],
+
+["Interlúdio — A Casa por Dentro", [
+"Helena caminhou por um corredor que parecia não ter fim. As paredes mudavam de cor. Às vezes eram verdes, como a cozinha de Pouso Alegre. Depois ficavam azuis. Depois voltavam a ser madeira. Cada mudança vinha acompanhada de uma lembrança.",
+"Ela viu Clara aos vinte anos. Depois Clara com Helena bebê. Depois Clara chorando sozinha. Depois Clara rindo de uma piada de Davi. A casa não inventava apenas sofrimento. Guardava também alegria. Era isso que a tornava perigosa.",
+"Uma porta abriu. Helena viu a mãe preparando bolo.",
+"— Mãe?",
+"Clara não respondeu.",
+"Era uma memória. Helena entrou mesmo assim. Sentiu o cheiro de baunilha. Viu a tigela sobre a mesa. Viu as mãos de Clara.",
+"— Eu queria ficar aqui — Helena disse.",
+"A Clara daquela lembrança sorriu.",
+"— Então fica.",
+"Helena fechou os olhos.",
+"Por alguns segundos, foi tentador. Não havia doença. Não havia culpa. Não havia medo. Era uma manhã comum, congelada no tempo.",
+"Mas Helena percebeu uma coisa: a lembrança não tinha Miguel. Nem Davi. Nem o futuro. Era perfeita porque não continuava.",
+"— Isso não é minha mãe — disse.",
+"A figura parou de mexer a massa.",
+"— Não?",
+"— Minha mãe não era só isso.",
+"A cozinha escureceu.",
+"— Ela também estava triste. Estava cansada. Tinha medo. Fez escolhas erradas. Amou a gente. E precisava de ajuda.",
+"A imagem começou a rachar.",
+"— Você quer uma mãe que nunca tenha sofrido — disse a casa.",
+"— Não. Quero lembrar da minha mãe inteira.",
+"A parede tremeu.",
+"Helena continuou andando.",
+"Foi assim que descobriu a única coisa que a casa não conseguia imitar: a verdade. A casa podia reproduzir vozes, rostos, cheiros e memórias. Mas não sabia o que fazer quando alguém recusava uma versão simples da própria história."
+]],
+
+["Capítulo 32 — O Vazio", [
+"Davi não acreditou.",
+"Procurou Clara pela casa, pela rua, pela cidade. Chamou a polícia. Falou com vizinhos. Vasculhou o quintal.",
+"Helena sabia onde ela estava.",
+"Mas não sabia como trazê-la de volta.",
+"Miguel parou de desenhar.",
+"Durante três dias, ninguém dormiu direito.",
+"Na quarta noite, Davi sentou-se ao lado de Helena.",
+"— Eu devia ter visto.",
+"— Eu também.",
+"— Não. Você é filha dela.",
+"Helena olhou para ele.",
+"— E você era marido dela.",
+"Davi chorou.",
+"Foi a primeira vez que Helena viu o pai chorar.",
+"O vazio da casa parecia ter vontade própria. Helena começou a ouvir frases da mãe em lugares diferentes. Na cozinha, Clara dizia que estava cansada. No banheiro, dizia que queria dormir. No quarto, dizia que não queria decepcionar ninguém.",
+"Helena percebeu que eram pedaços do caderno. A casa estava usando as palavras de Clara para construir uma versão dela.",
+"Davi queria chamar alguém. Polícia. Médico. Qualquer pessoa. Helena sabia que não conseguiria explicar o que estava acontecendo sem parecer louca. Mesmo assim, insistiu em procurar ajuda na cidade.",
+"O médico ouviu. Não acreditou na parte da casa, mas acreditou que Clara precisava ser encontrada e que a família precisava de apoio. Disse algo simples:",
+"— Não deixem a culpa decidir o que vocês fazem agora.",
+"Helena guardou a frase.",
+"Naquela noite, decidiu que não entraria na casa por vingança. Entraria para encontrar Clara e sair.",
+"Era uma diferença pequena. Mas era a diferença entre ser puxada pelo medo e escolher caminhar dentro dele."
+]],
+
+["Capítulo 33 — A Casa por Dentro", [
+"Helena voltou ao porão.",
+"Dessa vez, a menina estava esperando.",
+"— Você quer sua mãe.",
+"— Quero.",
+"— Então precisa parar de procurar uma porta.",
+"— O que eu procuro?",
+"— A história.",
+"A menina mostrou a parede.",
+"As manchas formavam uma sequência. Mulheres. Filhas. Casas.",
+"Não era uma família.",
+"Era um ciclo.",
+"A casa existia havia muito tempo. Não porque uma mulher tivesse virado um monstro, mas porque cada geração havia deixado ali uma dor que ninguém conseguia nomear. A casa acumulava aquilo.",
+"Rosa não tinha criado a casa.",
+"Ela tinha sido mais uma pessoa que entrou nela.",
+"E Clara também.",
+"Dentro da casa, Helena encontrou corredores que não existiam durante o dia. Cada porta levava a uma lembrança de outra família. Uma cozinha com uma mulher chamada Rosa. Um quarto com Lídia desenhando. Uma sala onde Marta esperava o marido voltar. A casa não mostrava mortes. Mostrava esperas.",
+"Foi isso que mais assustou Helena.",
+"Ela percebeu que o terror não estava em fantasmas correndo pelos corredores. Estava na repetição. Pessoas esperando alguém voltar. Filhos esperando a mãe melhorar. Mulheres esperando que alguém percebesse. Famílias esperando que o problema passasse sozinho.",
+"No último corredor, encontrou Clara sentada à mesa.",
+"— Mãe.",
+"Clara levantou os olhos.",
+"— Você veio.",
+"— Vim.",
+"— Não devia.",
+"— Eu sei.",
+"Helena sentou ao lado dela.",
+"— Vamos embora.",
+"Clara chorou.",
+"— Eu não consigo.",
+"— Então eu fico até você conseguir.",
+"A casa começou a bater nas paredes. Três vezes. Depois seis. Depois dezenas.",
+"Helena segurou a mão da mãe.",
+"— Você não precisa sair inteira. Só precisa sair comigo."
+]],
+
+["Capítulo 34 — A Voz de Clara", [
+"Helena ouviu a mãe atrás da parede.",
+"— Filha.",
+"Ela encostou a testa na madeira.",
+"— Mãe?",
+"— Não vem.",
+"— Eu vou te tirar daí.",
+"— Não desse jeito.",
+"— Que jeito?",
+"Silêncio.",
+"— Você passou a vida tentando me salvar — Clara disse. — Não transforme isso na sua vida inteira.",
+"Helena chorou.",
+"— Eu sou sua filha.",
+"— Eu sei. E é justamente por isso que quero que você vá embora.",
+"A voz sumiu.",
+"Helena percebeu então que a casa queria uma coisa muito simples: que ela acreditasse que amor significava carregar a dor de outra pessoa.",
+"A voz de Clara veio de dentro da parede. Ela contou a Helena que a casa não queria seu corpo. Queria a culpa dela.",
+"— Ela sabe que você faria qualquer coisa por mim.",
+"— Eu faria.",
+"— Esse é o problema.",
+"Helena entendeu. Amar a mãe não significava entregar a própria vida à doença dela, nem transformar a própria existência numa vigília permanente.",
+"— Você não precisa me salvar — Clara disse.",
+"— Eu sei.",
+"— Promete?",
+"Helena hesitou.",
+"— Prometo tentar.",
+"A casa tremeu.",
+"Não houve explosão. Não houve incêndio. Apenas uma porta se abriu atrás delas.",
+"Clara olhou para a filha.",
+"— Agora vai.",
+"— Vem comigo.",
+"— Eu estou tentando.",
+"Helena percebeu que talvez aquela fosse a última coisa que sua mãe pudesse lhe dar: não uma solução, mas permissão para continuar vivendo."
+]],
+
+["Interlúdio — Ir Embora", [
+"A decisão de sair de Vila Nova dos Ipês não foi dramática. Não houve incêndio. Não houve polícia. Não houve uma última aparição.",
+"Davi alugou um caminhão pequeno. Vera ajudou com as caixas. Miguel guardou os desenhos. Helena separou os cadernos.",
+"Na manhã da partida, ela ficou diante da casa por alguns minutos.",
+"— Você quer dizer alguma coisa? — Vera perguntou.",
+"— Não.",
+"— Tem certeza?",
+"Helena pensou.",
+"— Acho que passei tempo demais tentando falar com ela.",
+"Vera segurou seu ombro.",
+"— Então agora escuta a sua própria voz.",
+"Helena entrou no carro.",
+"A casa ficou para trás.",
+"Durante meses, ela esperou que algo acontecesse. Não aconteceu.",
+"Foi justamente isso que ensinou a Helena uma coisa difícil: sobreviver nem sempre parece uma vitória. Às vezes parece só acordar no dia seguinte, fazer café e continuar. E isso precisa ser suficiente."
+]],
+
+["Capítulo 35 — A Decisão", [
+"Helena decidiu entrar.",
+"Não para morrer. Não para ficar.",
+"Para encontrar Clara e sair.",
+"Levou o caderno de Rosa. O desenho de Miguel. A fotografia de Vera. E a única coisa que ainda tinha da infância: uma colher de madeira da cozinha antiga.",
+"A menina apareceu.",
+"— Você vai deixar tudo isso para trás?",
+"— Não.",
+"— Então por que entrar?",
+"— Porque não preciso esquecer para ir embora.",
+"A menina sorriu.",
+"Pela primeira vez, parecia triste.",
+"— Talvez você seja mesmo diferente.",
+"Helena colocou a mão na parede.",
+"E entrou.",
+"A decisão de Helena foi atravessar o corredor carregando quatro coisas: o caderno de Rosa, o desenho de Miguel, a fotografia de Vera e a velha colher de madeira que encontrara no porão. Não sabia por que escolhera aqueles objetos. Talvez porque cada um representasse uma parte da história. Memória. Família. Verdade. Casa.",
+"Quando chegou à porta, a casa tentou mostrar a infância de Helena. Clara jovem. Davi sorrindo. Miguel pequeno. Uma cozinha perfeita.",
+"— Fica — disse a casa.",
+"Helena fechou os olhos.",
+"— Não.",
+"— Você pode ter tudo de volta.",
+"— Eu não quero de volta. Quero seguir.",
+"A visão desapareceu.",
+"Helena encontrou Clara no último cômodo. A mãe parecia cansada, mas consciente.",
+"— Vamos.",
+"Clara levantou.",
+"Quando chegaram à porta, Clara parou.",
+"— Você não precisa morar comigo para me amar.",
+"Helena chorou.",
+"— Eu sei.",
+"— Agora sabe.",
+"A porta se abriu. A luz da manhã entrou.",
+"Helena saiu.",
+"Quando olhou para trás, Clara não estava mais ali."
+]],
+
+["Capítulo 36 — O Que Fica", [
+"Do outro lado não havia monstros.",
+"Havia cozinhas.",
+"Centenas delas. Mesas, panelas, brinquedos, toalhas, fotografias. Pequenos pedaços de vidas interrompidas.",
+"Helena viu Rosa. Depois Lídia. Depois Marta.",
+"E encontrou Clara sentada à mesa de uma cozinha antiga.",
+"— Mãe.",
+"Clara levantou.",
+"— Você veio.",
+"— Vim buscar você.",
+"— Não pode me carregar.",
+"— Então vem andando.",
+"Clara sorriu.",
+"— Eu tenho medo.",
+"— Eu também.",
+"Elas deram as mãos.",
+"A casa começou a ruir ao redor delas. Não como uma explosão. Como uma lembrança perdendo força. As paredes ficaram transparentes. As vozes se afastaram.",
+"Helena não destruiu a dor das mulheres.",
+"Ela fez outra coisa.",
+"Deixou que elas fossem embora sem precisar negar que tinham sofrido.",
+"Clara soltou a mão dela.",
+"— Vai, Helena.",
+"— Mãe…",
+"— Você não precisa morar comigo para me amar.",
+"Helena chorou.",
+"Clara desapareceu.",
+"Quando Helena abriu os olhos, estava no chão do porão. Miguel estava ao seu lado.",
+"— Você voltou — ele disse.",
+"Helena abraçou o irmão.",
+"A casa continuava de pé.",
+"Mas estava vazia."
+]],
+
+["Parte V — O Que Fica", [
+"O que ficou não foi uma resposta. Foi silêncio. Helena queria uma explicação clara para tudo. Não teve. A casa continuou de pé. As paredes não desabaram. Não havia prova de que alguma coisa sobrenatural tinha acontecido. Apenas pessoas que tinham saído diferentes.",
+"Davi procurou ajuda. Miguel voltou a desenhar, mas agora desenhava árvores, carros e pessoas. Helena começou a falar mais.",
+"Às vezes, ainda ouvia três batidas. Nunca respondia.",
+"Ela aprendeu que não precisava desafiar a casa. Bastava não entregar a ela o que queria.",
+"A família deixou Vila Nova dos Ipês algumas semanas depois. Antes de ir, Helena ficou diante da casa.",
+"— Adeus — disse.",
+"Não houve resposta.",
+"Ela quase se sentiu decepcionada. Depois percebeu que silêncio também podia ser liberdade."
+]],
+
+["Capítulo 37 — O Dia Seguinte", [
+"O dia seguinte não pareceu um recomeço. Pareceu apenas outro dia. O café foi feito. Miguel foi para a escola. Davi saiu para trabalhar. Helena foi à padaria.",
+"Mas havia pequenas diferenças. Ninguém ouviu passos no corredor. Nenhuma porta abriu sozinha. O relógio continuava funcionando.",
+"Naquela noite, Miguel fez um desenho. Pela primeira vez em meses, não desenhou a casa. Desenhou os quatro sentados na cozinha antiga de Pouso Alegre. Clara estava no desenho, sorrindo.",
+"— Você acha que ela está aí? — ele perguntou.",
+"Helena olhou para a folha.",
+"— Acho que ela está onde as lembranças conseguem chegar.",
+"Miguel pareceu satisfeito.",
+"— Então ela não está sozinha.",
+"Helena abraçou o irmão.",
+"— Não.",
+"E, naquela noite, ela finalmente conseguiu dormir sem deixar a porta aberta.",
+"No dia seguinte, Miguel fez um desenho diferente. Não havia casa. Havia quatro pessoas sentadas num banco de praça. Uma delas era Clara.",
+"— Ela está feliz? — Helena perguntou.",
+"— Não sei.",
+"— Então por que desenhou?",
+"— Porque eu lembro dela.",
+"Helena sorriu.",
+"Durante muito tempo, ela acreditou que lembrar era voltar. Descobriu que não era. Lembrar podia ser apenas reconhecer que algo aconteceu e continuar.",
+"Davi começou a cozinhar. Queimava arroz, exagerava no sal, mas insistia. Uma noite fez bolo de fubá. Ficou torto. Miguel comeu dois pedaços. Helena riu.",
+"— Mamãe faria melhor.",
+"— Com certeza — Davi respondeu.",
+"Ninguém ficou triste por ouvir o nome dela. Essa foi a primeira vitória pequena. Clara podia ser lembrada sem que a casa inteira parasse."
+]],
+
+["Capítulo 38 — Depois", [
+"Davi nunca conseguiu aceitar completamente o desaparecimento de Clara. Mas, pela primeira vez, começou a procurar ajuda para si mesmo e para Miguel. Helena também.",
+"Eles deixaram Vila Nova dos Ipês.",
+"Não queimaram a casa. Não precisaram.",
+"Algumas coisas não precisam ser destruídas para deixarem de mandar na nossa vida.",
+"Miguel guardou os desenhos por anos. Helena guardou o caderno de Rosa. Davi guardou a aliança de Clara numa caixa.",
+"Cada um carregou uma parte."
+]],
+
+["Interlúdio — Antes do Fim", [
+"Helena passou os últimos anos da vida aprendendo a lembrar sem voltar.",
+"Guardou a fotografia de Vera numa caixa. Guardou a colher de madeira na cozinha. Guardou um dos desenhos de Miguel entre as páginas do próprio livro.",
+"Não guardou nada da casa.",
+"Certa tarde, já idosa, recebeu uma ligação de Miguel. Conversaram sobre coisas simples. Trabalho. Filhos. O preço do café.",
+"Antes de desligar, ele perguntou:",
+"— Você ainda sonha com ela?",
+"Helena sorriu.",
+"— Às vezes.",
+"— E tem medo?",
+"— Não mais.",
+"Depois da ligação, ela foi até a cozinha. Fez bolo de fubá. Não porque precisava lembrar da mãe, mas porque gostava do cheiro.",
+"Quando o bolo ficou pronto, a casa estava cheia de vozes. A filha falava com os netos na sala. Alguém ria no corredor.",
+"Helena percebeu que tinha passado a vida tentando escapar de uma casa.",
+"E só no fim entendeu que a casa que importava sempre tinha sido aquela: a que ela conseguiu construir de outro jeito.",
+"Depois, a vida não ficou perfeita. Davi ainda teve dias ruins. Miguel ainda acordava assustado. Helena ainda sentia culpa às vezes. Mas agora eles falavam.",
+"Davi aprendeu a perguntar antes de tentar resolver. Miguel aprendeu que amigos imaginários não precisavam ser segredos. Helena aprendeu que podia amar alguém e ainda assim ter limites.",
+"A colher de madeira ficou com Helena. Ela a usava para fazer bolo. Não porque pertencesse à casa, mas porque decidiu que um objeto não teria poder sobre sua vida.",
+"Anos depois, quando alguém perguntou se ela acreditava em casas assombradas, Helena respondeu:",
+"— Algumas casas não precisam de fantasmas.",
+"A pessoa riu, achando que era brincadeira. Helena não explicou.",
+"Havia coisas que só faziam sentido para quem tinha vivido."
+]],
+
+["Interlúdio — Clara Antes da Casa", [
+"Clara tinha vinte anos quando conheceu Davi. Gostava de cantar enquanto arrumava a casa. Gostava de bolo de fubá. Gostava de caminhar sem destino. Tinha medo de hospitais e de ficar sozinha em lugares desconhecidos. Queria ter filhos. Queria uma casa com uma cozinha grande. Queria envelhecer com alguém.",
+"Helena encontrou essas coisas anos depois, quando Vera entregou uma caixa antiga. Havia cartas, fotografias, uma fita cassete e um caderno pequeno.",
+"Na primeira página, Clara tinha escrito: “Eu quero uma vida normal.”",
+"Helena leu a frase várias vezes.",
+"Não havia nada de extraordinário naquele desejo. Era justamente por isso que doía. Clara não tinha começado a história como alguém destinada à tragédia. Era uma pessoa comum que amava, errava, sonhava e, em algum momento, ficou doente.",
+"O caderno mostrava uma coisa que Helena nunca tinha visto: Clara também tinha medo de repetir a própria mãe.",
+"“Às vezes acho que minha mãe não sabia me amar sem medo. Tenho medo de fazer o mesmo com Helena.”",
+"Outra página dizia: “Se um dia eu ficar triste demais, quero que minha filha saiba que não é responsabilidade dela me salvar.”",
+"Helena fechou o caderno e chorou. A frase parecia uma resposta enviada através de décadas.",
+"A casa tinha tentado transformar Clara numa mulher sem saída. A memória devolvia outra pessoa: alguém que queria sair, que tentou, que teve recaídas, que pediu ajuda tarde demais e que também amou a filha o bastante para desejar que ela não carregasse seu sofrimento.",
+"Helena percebeu que a mãe não podia ser reduzida à última noite. Nem à doença. Nem ao desaparecimento.",
+"Talvez fosse isso que a casa mais temesse. Uma pessoa lembrada por inteiro era muito mais difícil de aprisionar."
+]],
+
+["Capítulo 39 — Dez Anos", [
+"Dez anos depois, Helena voltou à cidade.",
+"Miguel foi com ela. Adulto, quieto e muito menos assustado do que antes.",
+"A casa ainda estava lá.",
+"A porta continuava destrancada.",
+"Helena não entrou.",
+"Ficou diante dela por alguns minutos.",
+"— Você quer entrar? — Miguel perguntou.",
+"— Não.",
+"Ele sorriu.",
+"— Então por que veio?",
+"Helena olhou para a janela do andar de cima.",
+"— Para descobrir se eu ainda precisava entrar.",
+"Não precisava.",
+"Foram embora.",
+"Dez anos depois, Helena voltou à cidade. A rua estava menor. A praça parecia diferente. A casa, não.",
+"Miguel foi com ela. Caminharam até o portão.",
+"— Você quer entrar?",
+"— Não.",
+"— Tem certeza?",
+"— Tenho.",
+"Helena percebeu que havia passado dez anos imaginando aquela visita como um confronto. Não era. Era apenas uma mulher adulta diante de uma construção velha.",
+"— Eu achei que teria medo.",
+"Miguel sorriu.",
+"— Talvez você só tivesse medo de precisar voltar.",
+"Ela olhou para o irmão.",
+"— Você cresceu.",
+"— Você também.",
+"Eles foram embora sem entrar. Pela primeira vez, a casa não parecia uma porta. Parecia apenas uma casa."
+]],
+
+["Interlúdio — Os Anos Entre", [
+"Os anos seguintes não foram uma linha reta. Helena terminou a escola. Trabalhou. Estudou. Teve dias em que acordou acreditando que tinha ouvido as três batidas. Teve outros em que esqueceu completamente da casa.",
+"Miguel cresceu mais rápido do que ela imaginava. Parou de desenhar paredes. Começou a desenhar pessoas. Depois carros. Depois prédios. Quando adulto, virou o tipo de pessoa que sempre verificava se uma porta estava trancada duas vezes.",
+"Davi demorou mais. Algumas culpas não desaparecem porque alguém explica que elas não são suas. Ele precisou aprender isso aos poucos. Começou terapia, voltou a trabalhar em horários menores e passou a cozinhar aos domingos. Não era uma transformação perfeita. Era apenas uma sequência de pequenas escolhas diferentes.",
+"Vera envelheceu. Antes de morrer, entregou a Helena a fotografia de Lídia.",
+"— Você não precisa guardar — disse.",
+"Helena respondeu:",
+"— Quero guardar.",
+"— Por quê?",
+"— Porque ela existiu.",
+"Foi importante para Helena entender que lembrar não significava permanecer presa. Algumas memórias mereciam um lugar justamente para não precisarem ficar escondidas.",
+"Anos depois, Helena encontrou a filha brincando no quintal. A menina tinha o nome de Clara e gostava de fazer bolos ruins. Uma tarde, derrubou farinha no chão e começou a chorar.",
+"Helena quase disse que não era nada.",
+"Mas ajoelhou.",
+"— Você está triste.",
+"— Estou.",
+"— Então vamos limpar juntas.",
+"Foi uma coisa pequena. Quase ridícula. Mas Helena ficou olhando para a filha e percebeu que era assim que um ciclo terminava: não com uma grande vitória, mas com uma resposta diferente numa terça-feira qualquer."
+]],
+
+["Capítulo 40 — O Livro", [
+"Helena começou a escrever.",
+"No começo, tentou contar a história da casa. Depois percebeu que não era isso que queria contar.",
+"Escreveu sobre a mãe. Sobre o silêncio. Sobre pessoas que amam alguém e não sabem como ajudar. Sobre filhos que confundem amor com responsabilidade. Sobre famílias que demoram a perceber que pedir ajuda não é fracasso.",
+"Chamou o livro de A Casa que Nos Habita.",
+"Não porque a casa ainda existisse.",
+"Mas porque algumas coisas continuam morando dentro da gente mesmo depois que vamos embora.",
+"Quando Helena começou o livro, tentou escrever tudo exatamente como aconteceu. Descobriu que não conseguia. Algumas lembranças eram precisas demais. Outras pareciam sonhos. Então decidiu não escrever para provar nada. Escreveu para dizer o que aprendera.",
+"Escreveu sobre Clara sem transformá-la em vítima. Escreveu sobre Davi sem transformá-lo em vilão. Escreveu sobre Miguel como uma criança que percebeu coisas que adultos preferiam ignorar. Escreveu sobre Vera e a fotografia.",
+"E escreveu sobre a casa.",
+"Não explicou o que ela era. Talvez porque nunca tivesse certeza.",
+"No fim do manuscrito, escreveu: “Talvez algumas casas existam para nos lembrar do que acontece quando ninguém abre a porta.”",
+"O título veio naturalmente. A Casa que Nos Habita.",
+"Quando terminou, não sentiu alívio. Sentiu espaço. Como se uma parte da história finalmente tivesse saído de dentro dela."
+]],
+
+["Capítulo 41 — Clara", [
+"Helena teve uma filha.",
+"Chamou-a Clara.",
+"Durante muito tempo, teve medo de ter feito a escolha errada.",
+"Até o dia em que a menina chegou da escola chorando.",
+"Helena se ajoelhou.",
+"— O que aconteceu?",
+"A menina contou. Era algo pequeno. Uma briga. Uma coisa de criança.",
+"Mas Helena lembrou da própria mãe.",
+"Da frase “tô sempre bem”.",
+"E não disse isso.",
+"— Pode chorar — falou. — Eu tô aqui.",
+"Foi ali que entendeu que quebrar um ciclo não significa garantir que nada ruim acontecerá.",
+"Significa responder diferente quando a dor aparecer.",
+"Quando a filha de Helena nasceu, ela passou horas olhando para o rosto da menina. Chamou-a Clara. Não como substituição. Nunca seria. Era uma homenagem e, ao mesmo tempo, uma forma de dar ao nome outra história.",
+"Anos depois, a menina teve o primeiro grande choro. Helena quase disse que não era nada. A frase estava pronta na boca.",
+"Ela parou.",
+"— Me conta.",
+"A menina contou uma coisa pequena. Uma amiga não quis brincar com ela.",
+"Helena sentou no chão.",
+"— Isso dói mesmo.",
+"— É bobo.",
+"— Pode ser pequeno e doer.",
+"A menina encostou a cabeça no ombro da mãe.",
+"Naquela noite, Helena ficou pensando em Clara. Pela primeira vez, não pensou na doença. Pensou na mãe fazendo bolo. Cantando. Errando receitas. Rindo. Sendo apenas uma pessoa.",
+"Foi assim que Helena decidiu que não deixaria a memória da mãe ser dominada pela casa. A história de Clara começava antes dela e terminava muito depois dela. O horror era apenas uma parte."
+]],
+
+["Interlúdio — A Última Manhã", [
+"Na última manhã de sua vida, Helena acordou antes do despertador. Não estava assustada. Isso era novidade. Durante muitos anos, acordar cedo significava procurar algum ruído estranho. Naquela manhã, procurou apenas o cheiro de café.",
+"Foi até a cozinha devagar. A filha já estava ali.",
+"— Você não dorme mais? — perguntou a filha.",
+"— Durmo. Só acordo cedo.",
+"— Igual à vovó.",
+"Helena sorriu.",
+"— Igual à minha mãe.",
+"A filha colocou uma xícara diante dela. Conversaram sobre coisas simples. Uma conta. Um neto. Um bolo que alguém tinha esquecido no forno. Helena percebeu que aquela banalidade era uma das maiores coisas que tinha conquistado.",
+"Ela havia passado a adolescência acreditando que viver era impedir tragédias. Depois aprendeu que viver era muito maior. Era fazer café. Era discutir. Era pedir desculpas. Era ouvir uma criança chorar e não mandar que ela parasse. Era aceitar que algumas pessoas iriam embora e que ainda assim a vida continuaria cheia de encontros.",
+"Antes de voltar ao quarto, Helena abriu a gaveta onde guardava o livro. Passou os dedos pela capa. A Casa que Nos Habita.",
+"Não sentia mais vontade de destruir o livro. Também não sentia vontade de explicar tudo. A história podia permanecer imperfeita. Algumas portas não precisavam ser abertas novamente para provar que existiam.",
+"Ela voltou para a cama.",
+"Do corredor, ouviu a família rir.",
+"Por um instante, imaginou três batidas.",
+"Toc. Toc. Toc.",
+"Helena abriu os olhos.",
+"Esperou.",
+"Nada.",
+"Então sorriu.",
+"A casa tinha perdido o direito de assustá-la."
+]],
+
+["Capítulo 42 — A Casa que Nos Habita", [
+"Helena morreu aos oitenta anos.",
+"Naquela manhã, acordou cedo. Foi até a cozinha. Fez café. Abriu a janela.",
+"A filha estava na sala. Os netos conversavam no corredor. Havia barulho de pratos, risadas e passos.",
+"Helena sorriu.",
+"Por um instante, sentiu o antigo zumbido no ouvido esquerdo.",
+"Esperou.",
+"Nada aconteceu.",
+"Então entendeu que não precisava ter medo da lembrança.",
+"Fechou os olhos.",
+"Viu Clara.",
+"Não como estava na casa. Não como estava doente.",
+"Viu a mãe no sábado de manhã, com o avental florido, mexendo uma tigela de bolo.",
+"— Você demorou — Clara disse.",
+"Helena sorriu.",
+"— Eu tinha uma vida pra viver.",
+"Clara estendeu a mão.",
+"Helena segurou.",
+"E, pela primeira vez, não houve casa.",
+"Não houve parede.",
+"Não houve porta.",
+"Só duas pessoas que finalmente podiam se encontrar sem que uma precisasse salvar a outra.",
+"Helena fechou os olhos.",
+"Na cozinha, alguém riu.",
+"A vida continuou.",
+"E talvez fosse isso que significava sair de uma casa.",
+"Não esquecer o que aconteceu.",
+"Não fingir que não doeu.",
+"Apenas aprender a abrir a porta.",
+"E continuar andando.",
+"Helena morreu aos oitenta anos numa manhã comum. Não houve tempestade. Não houve sinais. A cozinha estava cheia de vozes. O cheiro de café vinha da mesa. A filha discutia com os netos sobre alguma coisa banal.",
+"Helena ouviu tudo deitada na cama e sorriu.",
+"Quando fechou os olhos, voltou à cozinha de Pouso Alegre. Viu Clara jovem, com o avental florido. Viu o bolo no forno. Viu Davi entrando com pão. Viu Miguel pequeno.",
+"— Você demorou — Clara disse.",
+"Helena sorriu.",
+"— Eu tinha uma vida para viver.",
+"Clara assentiu.",
+"Não havia casa. Não havia corredor. Não havia portas.",
+"Apenas duas mulheres sentadas numa cozinha que já não pertencia a lugar nenhum.",
+"Helena percebeu que talvez nunca tivesse precisado derrotar a casa. Precisava apenas impedir que ela definisse o que vinha depois.",
+"Abriu os olhos uma última vez. Na sala, ouviu alguém rir.",
+"Então fechou os olhos de novo.",
+"A vida continuou.",
+"E, pela primeira vez, isso não parecia abandono. Parecia exatamente o que deveria acontecer.",
+"A casa ficaria em algum lugar da memória. Mas não mandaria mais em ninguém.",
+"Foi assim que Helena aprendeu a sair: não correndo, não apagando, mas abrindo a porta, olhando para trás uma última vez e escolhendo continuar.",
+"E dessa vez, quando ouviu o silêncio, Helena não teve medo. Ela apenas respirou, fechou os olhos e deixou o dia começar.",
+"FIM"
+]],
+
+["Nota do Autor", [
+"Esta história não foi escrita para ensinar como alguém deve lidar com a dor.",
+"Foi escrita para lembrar que, muitas vezes, não conseguimos enxergar aquilo que acontece dentro de quem amamos. Às vezes, confundimos silêncio com tranquilidade, afastamento com escolha, e um “estou bem” com verdade.",
+"Clara é uma personagem, mas a dor que ela carrega é real para muitas pessoas.",
+"Ela representa aqueles que aprenderam a esconder o que sentem para não preocupar ninguém. Aqueles que acreditam que precisam suportar tudo sozinhos. Aqueles que, mesmo cercados de pessoas, conseguem se sentir completamente sozinhos.",
+"A casa desta história é mais do que uma casa.",
+"Ela representa aquilo que carregamos conosco: lembranças, culpa, medo, perdas, palavras que nunca foram ditas e feridas que aprendemos a esconder. Algumas pessoas conseguem sair de determinados lugares, mas continuam morando neles por dentro.",
+"Por isso, este livro não é apenas sobre o que aconteceu com Clara.",
+"É sobre Helena. Sobre Davi. Sobre Miguel. Sobre Vera. Sobre famílias que tentam amar sem saber exatamente como. Sobre pessoas que erram tentando ajudar. E, principalmente, sobre aquilo que acontece quando a dor deixa de ser silenciosa.",
+"Se você se reconheceu em Clara em algum momento desta história, quero que saiba de uma coisa:",
+"Você não precisa ser forte o tempo inteiro.",
+"Não precisa esconder o que sente para poupar os outros.",
+"Não precisa esperar chegar ao limite para dizer que não está bem.",
+"Pedir ajuda não faz de você um peso. Falar sobre aquilo que dói não diminui a sua força. E o fato de você estar passando por um momento difícil não significa que esse momento será a sua história inteira.",
+"A casa pode existir dentro de nós.",
+"Mas isso não significa que precisamos continuar morando nela.",
+"FIM."
+]],
+
+["Para Quem se Identificou com Clara", [
+"Se você se reconheceu na dor dela, lembre-se: você não precisa desaparecer para que a sua dor seja percebida.",
+"Fale.",
+"Peça ajuda.",
+"Fique.",
+"Ainda existe vida além daquilo que hoje parece impossível atravessar.",
+"By DEv @dev_esieme — developer"
+]]
+
+];
+</script>
+
+<script>
+/* ============================================================
+   MOTOR DO LIVRO
+   - Paginação por palavras (~130 palavras por página)
+   - Flip 3D ao avançar / retroceder
+   - Sumário clicável gerado automaticamente
+   - Clique nas laterais, teclado, swipe
+   - Capa com banner SVG
+   ============================================================ */
+(function(){
+  const WORDS_PER_PAGE = 130;
+
+  const bookEl    = document.getElementById('book');
+  const prevBtn   = document.getElementById('prevBtn');
+  const nextBtn   = document.getElementById('nextBtn');
+  const counterEl = document.getElementById('counter');
+  const barEl     = document.getElementById('progressBar');
+  const tocBtn    = document.getElementById('tocBtn');
+  const tocBack   = document.getElementById('tocBack');
+  const zoneLeft  = document.getElementById('zoneLeft');
+  const zoneRight = document.getElementById('zoneRight');
+  const hintEl    = document.getElementById('hint');
+
+  /* -------------------- Utilidades -------------------- */
+  const countWords = s => (s.match(/[A-Za-zÀ-ÿ0-9'’-]+/g) || []).length;
+  const escapeHtml = s => s
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Converte um "parágrafo" em HTML aplicando marcações simples.
+  // Se começar com "—" ou "–" é diálogo; se for curto e sem letras é batida.
+  function paraToHtml(text){
+    const t = text.trim();
+    const isDialogue = /^[—–-]\s/.test(t);
+    const isBeat     = /^(Toc\.?\s*){2,}/i.test(t) && t.length < 40;
+    const isCenter   = /^FIM\.?$/i.test(t) ||
+                       /^By DEv/i.test(t);
+
+    let html = escapeHtml(t)
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/“([^”]*)”/g,'&ldquo;$1&rdquo;')
+      .replace(/"([^"]*)"/g,'&ldquo;$1&rdquo;');
+
+    if (isBeat)      return `<p class="batida">${html}</p>`;
+    if (isCenter)    return `<p class="center">${html}</p>`;
+    if (isDialogue)  return `<p class="dialogue">${html}</p>`;
+    return `<p>${html}</p>`;
+  }
+
+  /* -------------------- Paginação -------------------- */
+  // Produz uma lista de páginas: cada uma com { title, html, isCover, isToc }
+  function buildPages(){
+    const pages = [];
+    // Capa
+    pages.push({ cover:true });
+    // Sumário (preenchido depois)
+    const tocPageIndex = pages.length;
+    pages.push({ toc:true });
+
+    // Capítulos — cada seção é uma "âncora" para o TOC
+    const tocEntries = [];
+
+    STORY.forEach(([title, paragraphs], secIdx) => {
+      const sectionPages = [];
+      let bucket = [];
+      let words  = 0;
+      let firstOfSection = true;
+
+      const pushPage = () => {
+        const isCont = !firstOfSection;
+        const displayTitle = isCont ? title + ' — (continuação)' : title;
+        const html = bucket.map(paraToHtml).join('');
+        // Primeira página da seção recebe capitular
+        let finalHtml = html;
+        if (firstOfSection){
+          finalHtml = finalHtml.replace(/<p([^>]*)>/, (m,attr) => `<p${attr} class="lead">`);
+        }
+        const pageIndex = pages.length;
+        pages.push({
+          title: displayTitle,
+          sectionTitle: title,
+          html: finalHtml,
+          isFirstOfSection: firstOfSection
+        });
+        sectionPages.push(pageIndex);
+        bucket = [];
+        words  = 0;
+        firstOfSection = false;
+      };
+
+      paragraphs.forEach(par => {
+        const w = Math.max(1, countWords(par));
+        if (bucket.length && words + w > WORDS_PER_PAGE){
+          pushPage();
+        }
+        bucket.push(par);
+        words += w;
+      });
+      if (bucket.length) pushPage();
+
+      tocEntries.push({
+        title,
+        firstPage: sectionPages[0]
+      });
+    });
+
+    return { pages, tocEntries, tocPageIndex };
+  }
+
+  const { pages, tocEntries, tocPageIndex } = buildPages();
+
+  /* -------------------- Render de uma página -------------------- */
+  function renderPageContent(p){
+    if (p.cover) return renderCover();
+    if (p.toc)   return renderToc();
+    return renderTextPage(p);
+  }
+
+  function renderCover(){
+    return `
+      <div class="cover">
+        <div class="cover-bg"></div>
+        <div class="cover-overlay"></div>
+        <div class="cover-frame">
+          <p class="kicker">Romance</p>
+          <h1>A Casa<span class="amp">que nos habita</span></h1>
+          <div class="rule"></div>
+          <p class="subtitle">Edição Expandida</p>
+          <p class="byline">By DEv @dev_esieme</p>
+        </div>
+      </div>`;
+  }
+
+  function renderToc(){
+    const items = tocEntries.map((e, i) => `
+      <li>
+        <button type="button" data-goto="${e.firstPage}">
+          <span class="t-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="t-name${e.firstPage === tocPageIndex ? ' cover-entry' : ''}">${escapeHtml(e.title)}</span>
+          <span class="t-dots"></span>
+          <span class="t-num">${String(e.firstPage+1).padStart(3,'0')}</span>
+        </button>
+      </li>`).join('');
+    return `
+      <div class="page-inner toc-inner">
+        <p class="toc-title">Sumário</p>
+        <ul class="toc-list">
+          <li>
+            <button type="button" data-goto="0">
+              <span class="t-num">—</span>
+              <span class="t-name cover-entry">Capa</span>
+              <span class="t-dots"></span>
+              <span class="t-num">001</span>
+            </button>
+          </li>
+          ${items}
+        </ul>
+      </div>`;
+  }
+
+  function renderTextPage(p){
+    const pNum = '— ' + (pages.indexOf(p) + 1);
+    return `
+      <div class="page-inner">
+        <div class="page-header">
+          <span class="h-left">${escapeHtml(p.title || '')}</span>
+          <span class="h-right">A Casa que Nos Habita</span>
+        </div>
+        <div class="page-body">${p.html}</div>
+        <div class="page-footer">
+          <span>Edição Expandida</span>
+          <span>${pNum}</span>
+        </div>
+      </div>`;
+  }
+
+  /* -------------------- Estado / controle -------------------- */
+  let current = 0;
+  let animating = false;
+  let frontEl, backEl;
+
+  function createPageEl(){
+    const el = document.createElement('div');
+    el.className = 'page';
+    el.style.transform = 'rotateY(0deg)';
+    return el;
+  }
+
+  function setup(){
+    bookEl.innerHTML = '';
+    frontEl = createPageEl();
+    backEl  = createPageEl();
+    backEl.style.zIndex = 1;
+    frontEl.style.zIndex = 2;
+    bookEl.appendChild(backEl);
+    bookEl.appendChild(frontEl);
+    loadPage(frontEl, current);
+    loadPage(backEl, current + 1);
+    updateChrome();
+  }
+
+  function loadPage(el, i){
+    if (i < 0 || i >= pages.length){
+      el.innerHTML = '';
+      el.dataset.idx = -1;
+      return;
+    }
+    el.innerHTML = renderPageContent(pages[i]);
+    el.dataset.idx = i;
+  }
+
+  function updateChrome(){
+    counterEl.textContent = (current + 1) + ' / ' + pages.length;
+    barEl.style.width = ((current + 1) / pages.length * 100) + '%';
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === pages.length - 1;
+    document.body.classList.toggle('in-toc', !!(pages[current] && pages[current].toc));
+  }
+
+  function getFlipDuration(){
+    // Respeita prefers-reduced-motion
+    const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return prefersReduce ? 250 : 800;
+  }
+
+  function flipForward(){
+    if (animating) return;
+    if (current >= pages.length - 1) return;
+    animating = true;
+
+    // backEl já tem a próxima página carregada
+    const D = getFlipDuration();
+    frontEl.classList.add('flipping');
+    // força reflow antes da animação
+    void frontEl.offsetWidth;
+    frontEl.style.transform = 'rotateY(-180deg)';
+
+    setTimeout(() => {
+      // Swap
+      current++;
+      // O antigo front vira o novo back (reset + carrega a página +2)
+      const exFront = frontEl;
+      const exBack  = backEl;
+
+      exFront.style.transition = 'none';
+      exFront.style.transform = 'rotateY(0deg)';
+      exFront.style.zIndex = 1;
+      exFront.classList.remove('flipping');
+      loadPage(exFront, current + 1);
+
+      exBack.style.zIndex = 2;
+
+      // força reflow
+      void exFront.offsetWidth;
+      exFront.style.transition = '';
+
+      frontEl = exBack;
+      backEl  = exFront;
+
+      animating = false;
+      updateChrome();
+    }, D);
+  }
+
+  function flipBackward(){
+    if (animating) return;
+    if (current <= 0) return;
+    animating = true;
+
+    const D = getFlipDuration();
+
+    // backEl passará a ser a página anterior
+    loadPage(backEl, current - 1);
+    backEl.style.transition = 'none';
+    backEl.style.transform = 'rotateY(-180deg)';
+    backEl.style.zIndex = 3;
+    void backEl.offsetWidth;
+
+    backEl.classList.add('flipping');
+    backEl.style.transition = '';
+    void backEl.offsetWidth;
+    backEl.style.transform = 'rotateY(0deg)';
+
+    setTimeout(() => {
+      current--;
+      // backEl agora está em cima e visível
+      const exFront = frontEl;
+      const exBack  = backEl;
+
+      exBack.classList.remove('flipping');
+      exBack.style.zIndex = 2;
+
+      exFront.style.zIndex = 1;
+      exFront.style.transform = 'rotateY(0deg)';
+      loadPage(exFront, current + 1);
+
+      frontEl = exBack;
+      backEl  = exFront;
+
+      animating = false;
+      updateChrome();
+    }, D);
+  }
+
+  function goto(i, instant){
+    i = Math.max(0, Math.min(pages.length - 1, i));
+    if (i === current) return;
+    if (instant){
+      current = i;
+      loadPage(frontEl, current);
+      loadPage(backEl, current + 1);
+      updateChrome();
+      return;
+    }
+    // Animação em cadeia até chegar no alvo
+    if (i > current){
+      const step = () => {
+        if (current === i || animating) return;
+        flipForward();
+        setTimeout(step, getFlipDuration() + 30);
+      };
+      step();
+    } else {
+      const step = () => {
+        if (current === i || animating) return;
+        flipBackward();
+        setTimeout(step, getFlipDuration() + 30);
+      };
+      step();
+    }
+  }
+
+  /* -------------------- Eventos -------------------- */
+  prevBtn.addEventListener('click', e => { e.stopPropagation(); flipBackward(); });
+  nextBtn.addEventListener('click', e => { e.stopPropagation(); flipForward(); });
+  tocBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    goto(tocPageIndex, true);
+  });
+  tocBack.addEventListener('click', e => {
+    e.stopPropagation();
+    // volta pra página que estava antes do sumário
+    goto(current === tocPageIndex ? 0 : current, true);
+  });
+
+  zoneLeft.addEventListener('click', () => flipBackward());
+  zoneRight.addEventListener('click', () => flipForward());
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); flipForward(); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')  { e.preventDefault(); flipBackward(); }
+    if (e.key === 'Home'){ e.preventDefault(); goto(0, true); }
+    if (e.key === 'End'){ e.preventDefault(); goto(pages.length-1, true); }
+  });
+
+  // Delegação para cliques no TOC
+  bookEl.addEventListener('click', e => {
+    const btn = e.target.closest('[data-goto]');
+    if (!btn) return;
+    const i = parseInt(btn.dataset.goto, 10);
+    if (Number.isFinite(i)) goto(i, true);
+  });
+
+  // Swipe
+  let sX = null, sY = null;
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    sX = e.touches[0].clientX;
+    sY = e.touches[0].clientY;
+  }, { passive:true });
+  document.addEventListener('touchend', e => {
+    if (sX === null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sX;
+    const dy = t.clientY - sY;
+    sX = sY = null;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4){
+      if (dx < 0) flipForward(); else flipBackward();
+    }
+  }, { passive:true });
+
+  // Hint
+  setTimeout(() => {
+    document.body.classList.add('show-hint');
+    setTimeout(() => document.body.classList.remove('show-hint'), 3200);
+  }, 900);
+
+  /* -------------------- Start -------------------- */
+  setup();
+})();
+</script>
+</body>
+</html>
